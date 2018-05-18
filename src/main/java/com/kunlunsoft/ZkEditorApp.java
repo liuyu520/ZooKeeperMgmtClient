@@ -420,6 +420,7 @@ public class ZkEditorApp extends GenericFrame {
             public void run() {
                 try {
                     connectServer(false);
+                    refreshCurrentPath();//设置主面板的当前路径
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -631,7 +632,7 @@ public class ZkEditorApp extends GenericFrame {
     }
 
     public void addOperateBtn(String key, Object[] objs, String nodeVal) {
-        objs[2] = new DelButton(key) {
+        objs[2] = new DelButton(key) {//删除,有确认提示
             @Override
             public void callback() {
                 super.callback();
@@ -639,10 +640,10 @@ public class ZkEditorApp extends GenericFrame {
             }
         }.setZkConnect(zkConnectMgmt).setRootPath(getRootPath());
 
-        objs[3] = new EditButton(key) {
+        objs[3] = new EditButton(key) {//编辑
             @Override
             public void action(String nodeKey) {
-                keyTextField.setText(getNodeKey());
+                keyTextField.setText(getNodeKey(), true);
                 valTextField.setText(getNodeValue());
             }
         }.setNodeValue(nodeVal);
@@ -652,9 +653,10 @@ public class ZkEditorApp extends GenericFrame {
             public void action(String nodeKey) {
 //                    super.callback();
 //                configInfo.setZkRootPath(getRootPath() + nodeKey);
-              /*  configInfo.saveZkRootPath(getRootPath() + nodeKey);
+//                configInfo.saveZkRootPath(getRootPath() + nodeKey);
+                zk.getZkEnvironment().setZkRootPath(SystemHWUtil.mergeTwoPath(getRootPath(), nodeKey));
                 refreshCurrentPath();
-                searchAction(true);*/
+                searchAction(true);
             }
         }.setRootPath(getRootPath());
     }
@@ -765,6 +767,7 @@ public class ZkEditorApp extends GenericFrame {
         this.configInfo = (ConfigInfo) HWJacksonUtils.deSerialize(resumeInput, ConfigInfo.class);
         //初始化 ZkConnectMgmt
         zkConnectMgmt = new ZkConnectMgmt(this.configInfo);
+
     }
 
     private void setMenuBar2() {

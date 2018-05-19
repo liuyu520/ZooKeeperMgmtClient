@@ -191,19 +191,19 @@ public class ZkEditorApp extends GenericFrame {
 //		JCheckBox onlinehCeckBox = new JCheckBox("线上");
 //		panel_2.add(onlinehCeckBox);
         testCheckBox = new JCheckBox("测试");
-        testCheckBox.setSelected(true);
+//        testCheckBox.setSelected(true);
         panel_2.add(testCheckBox);
 
         inteCheckBox = new JCheckBox("集测");
-        inteCheckBox.setSelected(true);
+//        inteCheckBox.setSelected(true);
         panel_2.add(inteCheckBox);
 
         moniCheckBox = new JCheckBox(" 模拟");
-        moniCheckBox.setSelected(true);
+//        moniCheckBox.setSelected(true);
         panel_2.add(moniCheckBox);
 
         onlineCheckBox = new JCheckBox("线上");
-        onlineCheckBox.setSelected(true);
+//        onlineCheckBox.setSelected(true);
         panel_2.add(onlineCheckBox);
 
         JPanel panel_3 = new JPanel();
@@ -222,13 +222,11 @@ public class ZkEditorApp extends GenericFrame {
 
                 boolean hasSelected = false;
                 if (inteCheckBox.isSelected()) {
-                    ConnItem connItem = zkConnectMgmt.getZK(1);
-                    updateZkNode(connItem.getZk(), connItem.getZkEnvironment().getZkRootPath());//TODO
+                    updateZkNodeAction(1);
                     hasSelected = true;
                 }
                 if (testCheckBox.isSelected()) {
-                    ConnItem connItem = zkConnectMgmt.getZK(0);
-                    updateZkNode(connItem.getZk(), connItem.getZkEnvironment().getZkRootPath());
+                    updateZkNodeAction(0);
                     hasSelected = true;
                 }
                 if (!hasSelected) {
@@ -249,13 +247,11 @@ public class ZkEditorApp extends GenericFrame {
 
                 boolean hasSelected = false;
                 if (inteCheckBox.isSelected()) {
-                    ConnItem connItem = zkConnectMgmt.getZK(1);
-                    createZkNode(connItem, connItem.getZkEnvironment().getZkRootPath());
+                    createZkNodeAction(1);
                     hasSelected = true;
                 }
                 if (testCheckBox.isSelected()) {
-                    ConnItem connItem = zkConnectMgmt.getZK(0);
-                    createZkNode(connItem, connItem.getZkEnvironment().getZkRootPath());
+                    createZkNodeAction(0);
                     hasSelected = true;
                 }
                 if (!hasSelected) {
@@ -471,6 +467,16 @@ public class ZkEditorApp extends GenericFrame {
         //
         ZkConnect.getEventBus().register(this);
         timingSave();
+    }
+
+    private void createZkNodeAction(int index2) {
+        ConnItem connItem = zkConnectMgmt.getZK(index2);
+        createZkNode(connItem, connItem.getZkEnvironment().getZkRootPath());
+    }
+
+    private void updateZkNodeAction(int index2) {
+        ConnItem connItem = zkConnectMgmt.getZK(index2);
+        updateZkNode(connItem.getZk(), connItem.getZkEnvironment().getZkRootPath());
     }
 
     /***

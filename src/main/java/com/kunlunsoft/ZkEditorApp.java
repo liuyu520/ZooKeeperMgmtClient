@@ -57,7 +57,7 @@ public class ZkEditorApp extends GenericFrame {
     private JPanel contentPane;
     private AssistPopupTextField keyTextField;
     private AssistPopupTextField valTextField;
-    private ConnItem zk;
+    private ConnItem zkConnItem;
     //    private ZkConnect zkConnect;
     private JCheckBox inteCheckBox;
     private JCheckBox testCheckBox;
@@ -226,13 +226,13 @@ public class ZkEditorApp extends GenericFrame {
                     updateZkNode(connItem.getZk(), connItem.getZkEnvironment().getZkRootPath());
                     hasSelected = true;
                 }
-               /* if (!hasSelected) {
+                if (!hasSelected) {
                     if (configInfo.isActivate()) {
-                        String path = ZkUtil.getCurrentZkRootPaths(configInfo);//configInfo.getZkRootPath();
-                        updateZkNode(zk, path);
+                        String path = getRootPath();//configInfo.getZkRootPath();
+                        updateZkNode(zkConnItem.getZk(), path);
                         return;
                     }
-                }*/
+                }
             }
         });
         panel_3.add(btnUpdate);
@@ -254,10 +254,10 @@ public class ZkEditorApp extends GenericFrame {
                     hasSelected = true;
                 }
                 if (!hasSelected) {
-                    /*if (configInfo.isActivate()) {
-                        String path = ZkUtil.getCurrentZkRootPaths(configInfo);
-                        createZkNode(zk, path);
-                    }*/
+                    if (configInfo.isActivate()) {
+                        String path = getRootPath();
+                        createZkNode(zkConnItem.getZk(), path);
+                    }
                 }
             }
         });
@@ -399,7 +399,7 @@ public class ZkEditorApp extends GenericFrame {
                 String orginRoot = getRootPath();// configInfo.getZkRootPath();
 //                configInfo.setZkRootPath(SystemHWUtil.getParentDir(orginRoot));
 //                configInfo.saveZkRootPath(SystemHWUtil.getParentDir(orginRoot));
-                zk.getZkEnvironment().setZkRootPath(SystemHWUtil.getParentDir(orginRoot));
+                zkConnItem.getZkEnvironment().setZkRootPath(SystemHWUtil.getParentDir(orginRoot));
                 refreshCurrentPath();
                 searchAction(true);
             }
@@ -508,16 +508,16 @@ public class ZkEditorApp extends GenericFrame {
         if (this.configInfo.isActivate() && (!ValueWidget.isNullOrEmpty(currentZkPath))) {
             path = currentZkPath;
         }*/
-        if (null == zk) {
+        if (null == zkConnItem) {
             return "";
         }
-        return zk.getZkEnvironment().getZkRootPath();
+        return zkConnItem.getZkEnvironment().getZkRootPath();
     }
 
     public void setTableData2(String searchKeyWord, String path) {
         TableUtil3.setTableData2(zkNodeTable, new Object[0][], columnNames);
         try {
-            resultMap = ZkConnect.search(path, zk.getZk());
+            resultMap = ZkConnect.search(path, zkConnItem.getZk());
 
 //            System.out.println("map :" + resultMap);
             Object[][] datas = null;
@@ -661,7 +661,7 @@ public class ZkEditorApp extends GenericFrame {
 //                    super.callback();
 //                configInfo.setZkRootPath(getRootPath() + nodeKey);
 //                configInfo.saveZkRootPath(getRootPath() + nodeKey);
-                zk.getZkEnvironment().setZkRootPath(SystemHWUtil.mergeTwoPath(getRootPath(), nodeKey));
+                zkConnItem.getZkEnvironment().setZkRootPath(SystemHWUtil.mergeTwoPath(getRootPath(), nodeKey));
                 refreshCurrentPath();
                 searchAction(true);
             }
@@ -710,30 +710,30 @@ public class ZkEditorApp extends GenericFrame {
     public void connectServer(boolean force) throws Exception {
         String msg = "尝试连接zk.....";
         System.out.println("msg :" + msg);
-        /*ZooKeeper zk = */
+        /*ZooKeeper zkConnItem = */
         int index = 0;
         if (this.configInfo.isActivate()) {
             index = configInfo.getEnvIndex();
             System.out.println("index :" + index);
             if (zkConnectMgmt.hasIndex(index) && (!force)) {
-                zk = zkConnectMgmt.getZK(index);
+                zkConnItem = zkConnectMgmt.getZK(index);
                 msg = "不用连接zk,从缓存获取.";
                 System.out.println("msg :" + msg);
                 return;
             }
 //            ZkUtil.connect(index, configInfo, zkConnect);
-            zk = ZkConnect.connect(configInfo.getCurrentEnvironment());
+            zkConnItem = ZkConnect.connect(configInfo.getCurrentEnvironment());
         } else {
 //            ZkConnect.connect(null, null);
 //            index = getOtherEnvIndex();
         }
 //        zkConnect = ZkConnect.connect();
-//        zk = zkConnect.getZk();
-        if (null == zk) {
+//        zkConnItem = zkConnect.getZk();
+        if (null == zkConnItem) {
             return;
         }
-        zkConnectMgmt.put(index, zk);
-        zkConnectMgmt.setCurrZk(zk);
+        zkConnectMgmt.put(index, zkConnItem);
+        zkConnectMgmt.setCurrZk(zkConnItem);
 
     }
 
@@ -748,8 +748,8 @@ public class ZkEditorApp extends GenericFrame {
     }
 
     public void closeZk() {
-        if (null != zk) try {
-            zk.close();
+        if (null != zkConnItem) try {
+            zkConnItem.close();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

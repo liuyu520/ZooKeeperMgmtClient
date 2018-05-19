@@ -14,6 +14,7 @@ import com.kunlunsoft.conn.ZkConnectMgmt;
 import com.kunlunsoft.dialog.ConfigDialog;
 import com.kunlunsoft.dto.ConfigInfo;
 import com.kunlunsoft.event.SaveConfigEvent;
+import com.kunlunsoft.event.ZkConnSuccessEvent;
 import com.kunlunsoft.event.listener.ZkModifyListener;
 import com.kunlunsoft.listener.MenuBarListener;
 import com.kunlunsoft.util.ZkConnect;
@@ -432,7 +433,7 @@ public class ZkEditorApp extends GenericFrame {
             e.printStackTrace();
         }
         addGlobalKey();
-        refreshCurrentPath();
+//        refreshCurrentPath();
 
         ZkModifyListener zkModifyListener = new ZkModifyListener(resultTextArea);
 
@@ -442,11 +443,17 @@ public class ZkEditorApp extends GenericFrame {
     }
 
     @Subscribe
+    public void handleConnSucces(ZkConnSuccessEvent zkConnSuccessEvent) {
+        String msg = "连接zk 成功.";
+        System.out.println("msg :" + msg);
+    }
+    @Subscribe
     public void handleSaveConfig(SaveConfigEvent saveConfigEvent) {
         System.out.println("保存配置文件2222 :");
 
         try {
             connectServer(false);
+            refreshCurrentPath();
         } catch (Exception e) {
             e.printStackTrace();
             GUIUtil23.errorDialog(e.getMessage());
@@ -727,8 +734,7 @@ public class ZkEditorApp extends GenericFrame {
         }
         zkConnectMgmt.put(index, zk);
         zkConnectMgmt.setCurrZk(zk);
-        msg = "连接zk 成功.";
-        System.out.println("msg :" + msg);
+
     }
 
     /***
@@ -832,7 +838,7 @@ public class ZkEditorApp extends GenericFrame {
 
     public void showConfig() {
         new ConfigDialog(ZkEditorApp.this.configInfo).setVisible(true);
-        refreshCurrentPath();
+
     }
 
     /***

@@ -4,6 +4,7 @@ import com.common.util.SystemHWUtil;
 import com.google.common.eventbus.EventBus;
 import com.kunlunsoft.conn.ConnItem;
 import com.kunlunsoft.dto.ZkEnvironment;
+import com.kunlunsoft.event.ZkConnSuccessEvent;
 import com.string.widget.util.ValueWidget;
 import com.swing.messagebox.GUIUtil23;
 import org.apache.log4j.Logger;
@@ -116,8 +117,21 @@ public class ZkConnect {
         ZooKeeper zk = new ZooKeeper(host, port, new Watcher() {
             public void process(WatchedEvent event) {
                 if (event.getState() == Event.KeeperState.SyncConnected) {
-                    connItem.getConnSignal().countDown();
+                    connedSuccess();
+                } else if (event.getState() == Event.KeeperState.ConnectedReadOnly) {
+                    connedSuccess();
+                } else if (event.getState() == Event.KeeperState.Expired) {
+                    GUIUtil23.warningDialog("连接超时,需要重新连接");
                 }
+            }
+
+            private void connedSuccess() {
+                // 增加 event bus 事件,因为这是真正连接上
+                connItem.getConnSignal().countDown();
+                String msg = "连接成功..ok";
+                System.out.println(msg);
+                ZkConnSuccessEvent connSuccessEvent = new ZkConnSuccessEvent();
+                getEventBus().post(connSuccessEvent);
             }
         });
         connItem.getConnSignal().await();

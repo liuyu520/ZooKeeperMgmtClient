@@ -58,7 +58,7 @@ public class ConfigInfo {
     }
 
     public ZkEnvironment getZkEnvironment(Integer envIndex) {
-        ZkEnvironment zkEnvironment = this.environments.get(envIndex);
+        ZkEnvironment zkEnvironment = getZkEnvironmentByIndex(envIndex);
         if (null == zkEnvironment) {
             zkEnvironment = new ZkEnvironment();
             this.environments.set(envIndex, zkEnvironment);
@@ -67,10 +67,14 @@ public class ConfigInfo {
     }
 
     public ZkEnvironment getCurrentEnvironment() {
+        int selectedIndex = getEnvIndex();
+        return getZkEnvironmentByIndex(selectedIndex);
+    }
+
+    private ZkEnvironment getZkEnvironmentByIndex(int selectedIndex) {
         if (null == this.environments) {
             this.environments = new ArrayList<>();
         }
-        int selectedIndex = getEnvIndex();
         int length = this.environments.size();
         if (selectedIndex >= length) {
             int delta = selectedIndex - length + 1;

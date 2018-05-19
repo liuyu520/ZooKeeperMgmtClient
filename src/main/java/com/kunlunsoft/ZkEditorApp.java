@@ -681,15 +681,22 @@ public class ZkEditorApp extends GenericFrame {
             }
         }.setNodeValue(nodeVal);
 
-        objs[4] = new EnterDirectoryBtn(key) {
+        objs[4] = new EnterDirectoryBtn(key) {//进入目录,进入文件夹
             @Override
-            public void action(String nodeKey) {
+            public void action(final String nodeKey) {
 //                    super.callback();
 //                configInfo.setZkRootPath(getRootPath() + nodeKey);
 //                configInfo.saveZkRootPath(getRootPath() + nodeKey);
-                zkConnItem.getZkEnvironment().setZkRootPath(SystemHWUtil.mergeTwoPath(getRootPath(), nodeKey));
-                refreshCurrentPath();
-                searchAction(true);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        setEnabled(false);
+                        zkConnItem.getZkEnvironment().setZkRootPath(SystemHWUtil.mergeTwoPath(getRootPath(), nodeKey));
+                        refreshCurrentPath();
+                        searchAction(true);
+                        setEnabled(true);
+                    }
+                }).start();
             }
         }.setRootPath(getRootPath());
     }

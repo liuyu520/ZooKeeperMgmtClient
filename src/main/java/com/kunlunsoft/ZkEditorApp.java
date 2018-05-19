@@ -301,7 +301,15 @@ public class ZkEditorApp extends GenericFrame {
         searchTextField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                searchAction();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        searchTextField.setEnabled(false);
+                        searchAction();
+                        searchTextField.setEnabled(true);
+                    }
+                }).start();
+
                 ToastMessage.toast("查询完成", 1000);
             }
         });
@@ -319,7 +327,7 @@ public class ZkEditorApp extends GenericFrame {
         gbc_checkBox.gridy = 0;
         panel_1.add(fuzzyCheckBox, gbc_checkBox);
 
-        JButton btnSearch = new JButton("search");
+        final JButton btnSearch = new JButton("search");
         GridBagConstraints gbc_btnSearch = new GridBagConstraints();
         gbc_btnSearch.insets = new Insets(0, 0, 5, 0);
         gbc_btnSearch.gridx = 2;
@@ -328,7 +336,14 @@ public class ZkEditorApp extends GenericFrame {
         btnSearch.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                searchAction();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        btnSearch.setEnabled(false);
+                        searchAction();
+                        btnSearch.setEnabled(true);
+                    }
+                }).start();
             }
         });
 
@@ -406,27 +421,30 @@ public class ZkEditorApp extends GenericFrame {
         });
         panel_6.add(backBtn);
 
-
+        boolean readConfigSuccess = false;
         try {
-            readConfig();//必须在connectServer()方法之前
+            readConfigSuccess = readConfig();//必须在connectServer()方法之前
         } catch (IOException e) {
             e.printStackTrace();
             ToastMessage.toast("读取配置文件失败", 2000, Color.red);
         }
 
         setMenuBar2();
-        //连接zk服务器
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    connectServer(false);
-                    refreshCurrentPath();//设置主面板的当前路径
-                } catch (Exception e) {
-                    e.printStackTrace();
+        if (readConfigSuccess) {
+            //连接zk服务器
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        connectServer(false);
+                        refreshCurrentPath();//设置主面板的当前路径
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-        }).start();
+            }).start();
+        }
+
         try {
             init33(this, false);
         } catch (Exception e) {
@@ -450,7 +468,9 @@ public class ZkEditorApp extends GenericFrame {
     @Subscribe
     public void handleSaveConfig(SaveConfigEvent saveConfigEvent) {
         System.out.println("保存配置文件2222 :");
-
+        if (null == zkConnectMgmt) {
+            zkConnectMgmt = new ZkConnectMgmt(this.configInfo);
+        }
         try {
             connectServer(false);
             refreshCurrentPath();
@@ -680,7 +700,7 @@ public class ZkEditorApp extends GenericFrame {
 
     public void updateZkNode(ZooKeeper zk, String rootPath) {
         try {
-            String oldVal = ZkConnect.updateNode(zk, rootPath + keyTextField.getText2(), valTextField.getText());
+            String oldVal = ZkConnect.updateNode(zk, SystemHWUtil.mergeTwoPath(rootPath, keyTextField.getText2()), valTextField.getText());
             ZkConnect.clearCache(rootPath);
             ToastMessage.toast("更新成功,原值:" + oldVal, 2000);
         } catch (Exception e1) {
@@ -691,11 +711,12 @@ public class ZkEditorApp extends GenericFrame {
 
     public void createZkNode(ZooKeeper zooKeeper, String rootPath) {
         try {
-            ZkConnect.createNode(zooKeeper, rootPath + keyTextField.getText2(), valTextField.getText());
+            ZkConnect.createNode(zooKeeper, SystemHWUtil.mergeTwoPath(rootPath, keyTextField.getText2()), valTextField.getText());
             ZkConnect.clearCache(rootPath);
             ToastMessage.toast("添加成功", 2000);
         } catch (Exception e1) {
             e1.printStackTrace();
+            ToastMessage.toast("可能已经存在:" + e1.getMessage(), 3000, Color.RED);
         }
     }
 
@@ -759,21 +780,25 @@ public class ZkEditorApp extends GenericFrame {
      * 读取配置文件
      * @throws IOException
      */
-    private void readConfig() throws IOException {
+    private boolean readConfig() throws IOException {
         configFile = new File(configFilePath);
         if (!configFile.exists()) {
             configFile = new File(".zookeeper_editer.properties");
         }
         if (!configFile.exists()) {
-            return;
+            return false;
         }
         InputStream inStream = new FileInputStream(configFile);
         String resumeInput = FileUtils.getFullContent4(inStream, SystemHWUtil.CHARSET_UTF);
         inStream.close();//及时关闭资源
+        if (ValueWidget.isNullOrEmpty(resumeInput)) {
+            GUIUtil23.warningDialog("请先去进行配置");
+            return false;
+        }
         this.configInfo = (ConfigInfo) HWJacksonUtils.deSerialize(resumeInput, ConfigInfo.class);
         //初始化 ZkConnectMgmt
         zkConnectMgmt = new ZkConnectMgmt(this.configInfo);
-
+        return true;
     }
 
     private void setMenuBar2() {
@@ -880,10 +905,12 @@ public class ZkEditorApp extends GenericFrame {
             }
         }
         CMDUtil.show(configFilePath);//因为隐藏文件是只读的
-        //处理
-        System.out.println("保存文件:" + configFilePath);
-        FileUtils.writeToFile(configFile, HWJacksonUtils.getJsonP(this.configInfo), SystemHWUtil.CHARSET_UTF);
-        CMDUtil.hide(configFilePath);
+        if (null != configFile) {
+            //处理
+            System.out.println("保存文件:" + configFilePath);
+            FileUtils.writeToFile(configFile, HWJacksonUtils.getJsonP(this.configInfo), SystemHWUtil.CHARSET_UTF);
+            CMDUtil.hide(configFilePath);
+        }
     }
 }
 

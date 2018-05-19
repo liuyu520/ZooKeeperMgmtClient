@@ -500,10 +500,7 @@ public class ZkEditorApp extends GenericFrame {
             zkConnectMgmt = new ZkConnectMgmt(this.configInfo);
         }
 
-        String currEnvDisp = this.configInfo.getCurrEnvDisp();
-        if (!ValueWidget.isNullOrEmpty(currEnvDisp)) {
-            setTitle(ZOOKEEPER_title + "-" + currEnvDisp);
-        }
+        resetTitle();
 
         try {
             connectServer(false);
@@ -521,6 +518,13 @@ public class ZkEditorApp extends GenericFrame {
             searchAction();
         }
         this.envIndex = this.configInfo.getEnvIndex();
+    }
+
+    private void resetTitle() {
+        String currEnvDisp = this.configInfo.getCurrEnvDisp();
+        if (!ValueWidget.isNullOrEmpty(currEnvDisp)) {
+            setTitle(ZOOKEEPER_title + "-" + currEnvDisp);
+        }
     }
 
     public void refreshCurrentPath() {
@@ -850,6 +854,8 @@ public class ZkEditorApp extends GenericFrame {
             return false;
         }
         this.configInfo = (ConfigInfo) HWJacksonUtils.deSerialize(resumeInput, ConfigInfo.class);
+        this.envIndex = this.configInfo.getEnvIndex();
+        resetTitle();
         //初始化 ZkConnectMgmt
         zkConnectMgmt = new ZkConnectMgmt(this.configInfo);
         return true;

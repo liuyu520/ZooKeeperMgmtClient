@@ -246,18 +246,18 @@ public class ZkEditorApp extends GenericFrame {
                 boolean hasSelected = false;
                 if (inteCheckBox.isSelected()) {
                     ConnItem connItem = zkConnectMgmt.getZK(1);
-                    createZkNode(connItem.getZk(), connItem.getZkEnvironment().getZkRootPath());
+                    createZkNode(connItem, connItem.getZkEnvironment().getZkRootPath());
                     hasSelected = true;
                 }
                 if (testCheckBox.isSelected()) {
                     ConnItem connItem = zkConnectMgmt.getZK(0);
-                    createZkNode(connItem.getZk(), connItem.getZkEnvironment().getZkRootPath());
+                    createZkNode(connItem, connItem.getZkEnvironment().getZkRootPath());
                     hasSelected = true;
                 }
                 if (!hasSelected) {
                     if (configInfo.isActivate()) {
                         String path = getRootPath();
-                        createZkNode(zkConnItem.getZk(), path);
+                        createZkNode(zkConnItem, path);
                     }
                 }
             }
@@ -470,6 +470,7 @@ public class ZkEditorApp extends GenericFrame {
     public void handleConnSucces(ZkConnSuccessEvent zkConnSuccessEvent) {
         String msg = "连接zk 成功.";
         System.out.println("msg :" + msg);
+        ToastMessage.toast("连接成功", 2000);
     }
     @Subscribe
     public void handleSaveConfig(SaveConfigEvent saveConfigEvent) {
@@ -703,7 +704,7 @@ public class ZkEditorApp extends GenericFrame {
                     }
                 }).start();
             }
-        }.setRootPath(getRootPath());
+        }.setRootPath(getRootPath());//其实会随时变化
     }
 
     public boolean check() {
@@ -727,13 +728,17 @@ public class ZkEditorApp extends GenericFrame {
         }
     }
 
-    public void createZkNode(ZooKeeper zooKeeper, String rootPath) {
+    public void createZkNode(ConnItem connItem, String rootPath) {
+        ZooKeeper zooKeeper = connItem.getZk();
         try {
             ZkConnect.createNode(zooKeeper, SystemHWUtil.mergeTwoPath(rootPath, keyTextField.getText2()), valTextField.getText());
             ZkConnect.clearCache(rootPath);
             ToastMessage.toast("添加成功", 2000);
         } catch (Exception e1) {
             e1.printStackTrace();
+            if (e1.getMessage().contains("KeeperErrorCode = ConnectionLoss for")) {
+                connItem.reconnect();
+            }
             ToastMessage.toast("可能已经存在:" + e1.getMessage(), 3000, Color.RED);
         }
     }
@@ -872,7 +877,6 @@ public class ZkEditorApp extends GenericFrame {
         closeZk();//先关闭连接,再创建新的连接
         try {
             connectServer(true);
-            ToastMessage.toast("连接成功", 2000);
         } catch (Exception e1) {
             e1.printStackTrace();
             ToastMessage.toast("连接失败", 2000, Color.red);

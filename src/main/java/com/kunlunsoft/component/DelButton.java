@@ -12,13 +12,24 @@ import java.util.List;
  */
 public class DelButton extends MyButton {
     @Override
-    public void action(String nodeKey) {
+    public void action(final String nodeKey) {
         System.out.println("nodeKey :" + nodeKey);
         int result = JOptionPane.showConfirmDialog(null, "确认要删除吗 ?", "确认",
                 JOptionPane.OK_CANCEL_OPTION);
         if (result != JOptionPane.OK_OPTION) {
             return;
         }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                setEnabled(false);
+                deleteAction(nodeKey);
+                setEnabled(true);
+            }
+        }).start();
+    }
+
+    private void deleteAction(String nodeKey) {
         try {
             String rootPath = getRootPath();
             if (!rootPath.endsWith("/")) {

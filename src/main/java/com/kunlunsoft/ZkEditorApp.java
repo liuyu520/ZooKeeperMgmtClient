@@ -65,7 +65,7 @@ public class ZkEditorApp extends GenericFrame {
     private JCheckBox onlineCheckBox;
     private AssistPopupTextField searchTextField;
     private JTable zkNodeTable;
-    static final String[] columnNames = {"参数名", "参数值(字符串)", "操作", "操作", "操作"};
+    static final String[] columnNames = {"参数名", "参数值(字符串)", "删除", "编辑", "进入"};
     private Map<String, String> resultMap;
     private JLabel statusLabel;
     private ConfigInfo configInfo = new ConfigInfo();

@@ -412,12 +412,17 @@ public class ZkEditorApp extends GenericFrame {
         backBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String orginRoot = getRootPath();// configInfo.getZkRootPath();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String orginRoot = getRootPath();// configInfo.getZkRootPath();
 //                configInfo.setZkRootPath(SystemHWUtil.getParentDir(orginRoot));
 //                configInfo.saveZkRootPath(SystemHWUtil.getParentDir(orginRoot));
-                zkConnItem.getZkEnvironment().setZkRootPath(SystemHWUtil.getParentDir(orginRoot));
-                refreshCurrentPath();
-                searchAction(true);
+                        zkConnItem.getZkEnvironment().setZkRootPath(SystemHWUtil.getParentDir(orginRoot));
+                        refreshCurrentPath();
+                        searchAction(true);
+                    }
+                }).start();
             }
         });
         panel_6.add(backBtn);

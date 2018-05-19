@@ -48,9 +48,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.Timer;
 
 public class ZkEditorApp extends GenericFrame {
 
@@ -59,6 +58,10 @@ public class ZkEditorApp extends GenericFrame {
     private AssistPopupTextField keyTextField;
     private AssistPopupTextField valTextField;
     private ConnItem zkConnItem;
+    /***
+     * 环境
+     */
+    private Integer envIndex;
     //    private ZkConnect zkConnect;
     private JCheckBox inteCheckBox;
     private JCheckBox testCheckBox;
@@ -464,8 +467,23 @@ public class ZkEditorApp extends GenericFrame {
 
         //
         ZkConnect.getEventBus().register(this);
+        timingSave();
     }
 
+    /***
+     * 定时器保存配置文件<br />
+     * 定时保存配置的时间间隔为5分钟
+     */
+    private void timingSave() {
+        java.util.Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+//                System.out.println("time :" );
+                saveConfig();
+            }
+        }, 1000 * 60 * 5/*5分钟 */, 1000 * 60 * 5/*5分钟 */);
+    }
     @Subscribe
     public void handleConnSucces(ZkConnSuccessEvent zkConnSuccessEvent) {
         String msg = "连接zk 成功.";
@@ -478,6 +496,7 @@ public class ZkEditorApp extends GenericFrame {
         if (null == zkConnectMgmt) {
             zkConnectMgmt = new ZkConnectMgmt(this.configInfo);
         }
+
         String currEnvDisp = this.configInfo.getCurrEnvDisp();
         if (!ValueWidget.isNullOrEmpty(currEnvDisp)) {
             setTitle(ZOOKEEPER_title + "-" + currEnvDisp);
@@ -490,6 +509,15 @@ public class ZkEditorApp extends GenericFrame {
             e.printStackTrace();
             GUIUtil23.errorDialog(e.getMessage());
         }
+        if (null != this.envIndex
+                && this.envIndex != this.configInfo.getEnvIndex()) {
+            //说明切换了环境,需要刷新
+//            ToastMessage.toast("切换了环境",1000);
+            System.out.println(" 切换了环境");
+            ZkConnect.clearCache();
+            searchAction();
+        }
+        this.envIndex = this.configInfo.getEnvIndex();
     }
 
     public void refreshCurrentPath() {

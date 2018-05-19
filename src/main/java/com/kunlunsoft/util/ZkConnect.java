@@ -5,6 +5,7 @@ import com.google.common.eventbus.EventBus;
 import com.kunlunsoft.conn.ConnItem;
 import com.kunlunsoft.dto.ZkEnvironment;
 import com.kunlunsoft.event.ZkConnSuccessEvent;
+import com.kunlunsoft.event.ZkModifyEvent;
 import com.string.widget.util.ValueWidget;
 import com.swing.messagebox.GUIUtil23;
 import org.apache.log4j.Logger;
@@ -179,8 +180,8 @@ public class ZkConnect {
 
     public static void logger(String path, String val) {
         System.out.println("更新 ,val:" + val + ", path:" + path);
-//        ZkModifyEvent zkModifyEvent = new ZkModifyEvent(path, val); TODO
-//        eventBus.post(zkModifyEvent);
+        ZkModifyEvent zkModifyEvent = new ZkModifyEvent(path, val);
+        eventBus.post(zkModifyEvent);
     }
 
     public static EventBus getEventBus() {

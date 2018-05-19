@@ -230,6 +230,7 @@ public class ConfigDialog extends JDialog {
         }
         if (ConfigDialog.this.configInfo.isActivate()) {//只有选中"激活"才会触发 TODO
             SaveConfigEvent saveConfigEvent = new SaveConfigEvent();
+            saveConfigEvent.setEnvIndex(ConfigDialog.this.configInfo.getEnvIndex());
             ZkConnect.getEventBus().post(saveConfigEvent);
         }
     }

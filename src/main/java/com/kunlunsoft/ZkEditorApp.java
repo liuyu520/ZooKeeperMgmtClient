@@ -54,6 +54,7 @@ import java.util.TreeMap;
 
 public class ZkEditorApp extends GenericFrame {
 
+    public static final String ZOOKEEPER_title = "zookeeper 编辑器";
     private JPanel contentPane;
     private AssistPopupTextField keyTextField;
     private AssistPopupTextField valTextField;
@@ -109,7 +110,7 @@ public class ZkEditorApp extends GenericFrame {
      * Create the frame.
      */
     public ZkEditorApp() {
-        setTitle("zookeeper 编辑器");
+        setTitle(ZOOKEEPER_title);
         try {
             setIcon("/img/logo.jpg", this.getClass());
         } catch (IOException e) {
@@ -471,6 +472,11 @@ public class ZkEditorApp extends GenericFrame {
         if (null == zkConnectMgmt) {
             zkConnectMgmt = new ZkConnectMgmt(this.configInfo);
         }
+        String currEnvDisp = this.configInfo.getCurrEnvDisp();
+        if (!ValueWidget.isNullOrEmpty(currEnvDisp)) {
+            setTitle(ZOOKEEPER_title + "-" + currEnvDisp);
+        }
+
         try {
             connectServer(false);
             refreshCurrentPath();

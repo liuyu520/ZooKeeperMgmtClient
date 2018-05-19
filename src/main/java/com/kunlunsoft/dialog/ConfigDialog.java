@@ -218,6 +218,7 @@ public class ConfigDialog extends JDialog {
         int selectedIndex = envComboBox.getSelectedIndex();
         ZkEnvironment zkEnvironment = configInfo.getZkEnvironment(selectedIndex);
         ConfigDialog.this.configInfo.setEnvIndex(selectedIndex);
+        ConfigDialog.this.configInfo.setCurrEnvDisp(envComboBox.getSelectedItem().toString());
         zkEnvironment.setIp(ipTextArea.getText());
 //        ips.set(selectedIndex, ipTextArea.getText());
         ConfigDialog.this.configInfo

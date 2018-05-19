@@ -24,6 +24,10 @@ public class ConfigInfo {
      * 环境
      */
     private int envIndex;
+    /***
+     * 当前环境名称
+     */
+    private String currEnvDisp;
 
     public List<ZkEnvironment> getEnvironments() {
         return environments;
@@ -101,5 +105,13 @@ public class ConfigInfo {
             return "";
         }
         return String.valueOf(port);
+    }
+
+    public String getCurrEnvDisp() {
+        return currEnvDisp;
+    }
+
+    public void setCurrEnvDisp(String currEnvDisp) {
+        this.currEnvDisp = currEnvDisp;
     }
 }

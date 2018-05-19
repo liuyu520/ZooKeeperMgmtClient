@@ -14,7 +14,7 @@ public class DelButton extends MyButton {
     @Override
     public void action(final String nodeKey) {
         System.out.println("nodeKey :" + nodeKey);
-        int result = JOptionPane.showConfirmDialog(null, "确认要删除吗 ?", "确认",
+        int result = JOptionPane.showConfirmDialog(null, "确认要删除\""+nodeKey+"\"吗 ?", "确认",
                 JOptionPane.OK_CANCEL_OPTION);
         if (result != JOptionPane.OK_OPTION) {
             return;

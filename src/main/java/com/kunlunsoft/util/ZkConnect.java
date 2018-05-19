@@ -165,7 +165,7 @@ public class ZkConnect {
         String oldVal = null;
         if (!ValueWidget.isNullOrEmpty(val)) {
             oldVal = new String(val, SystemHWUtil.CHARSET_UTF);
-//            logger(path, oldVal);
+            logger(path, oldVal);
             System.out.println("原值:" + oldVal);
         }
         updateNode(zk, path, data.getBytes(SystemHWUtil.CHARSET_UTF));

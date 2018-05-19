@@ -15,6 +15,7 @@ import com.kunlunsoft.dialog.ConfigDialog;
 import com.kunlunsoft.dto.ConfigInfo;
 import com.kunlunsoft.event.SaveConfigEvent;
 import com.kunlunsoft.event.ZkConnSuccessEvent;
+import com.kunlunsoft.event.ZkModifyEvent;
 import com.kunlunsoft.event.listener.ZkModifyListener;
 import com.kunlunsoft.listener.MenuBarListener;
 import com.kunlunsoft.util.ZkConnect;
@@ -422,6 +423,8 @@ public class ZkEditorApp extends GenericFrame {
 //                configInfo.setZkRootPath(SystemHWUtil.getParentDir(orginRoot));
 //                configInfo.saveZkRootPath(SystemHWUtil.getParentDir(orginRoot));
                         zkConnItem.getZkEnvironment().setZkRootPath(SystemHWUtil.getParentDir(orginRoot));
+                        ZkModifyEvent zkModifyEvent = new ZkModifyEvent(zkConnItem.getZkEnvironment().getZkRootPath(), orginRoot);
+                        ZkConnect.getEventBus().post(zkModifyEvent);
                         refreshCurrentPath();
                         searchAction(true);
                     }

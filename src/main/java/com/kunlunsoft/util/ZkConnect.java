@@ -100,9 +100,7 @@ public class ZkConnect {
             GUIUtil23.warningDialog("未进行配置,请先去配置");
             return null;
         }
-        if (null == host || (!host.contains("."))) {
-            host = "172.16.200.12,172.16.200.18,172.16.200.19";
-        }
+
         if (null == port) {
             port = 2181;
         }

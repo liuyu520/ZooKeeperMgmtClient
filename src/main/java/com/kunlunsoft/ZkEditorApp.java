@@ -907,7 +907,18 @@ public class ZkEditorApp extends GenericFrame {
         saveConfig();
     }
 
+    /***
+     * 关闭连接
+     */
     public void closeZk() {
+        Map<Integer, ConnItem> connItemMap = zkConnectMgmt.getConnItemMap();
+        for (ConnItem connItem : connItemMap.values()) {
+            try {
+                connItem.close();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         if (null != zkConnItem) try {
             zkConnItem.close();
         } catch (InterruptedException e) {

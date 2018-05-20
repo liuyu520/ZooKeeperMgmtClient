@@ -62,6 +62,7 @@ public class ConnItem {
     public void close() throws InterruptedException {
         if (null != zk) {
             zk.close();
+            setZk(null);
         }
     }
 }

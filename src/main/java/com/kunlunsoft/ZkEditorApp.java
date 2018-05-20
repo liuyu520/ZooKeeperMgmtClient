@@ -27,6 +27,8 @@ import com.swing.dialog.DialogUtil;
 import com.swing.dialog.GenericFrame;
 import com.swing.dialog.toast.ToastMessage;
 import com.swing.event.EventHWUtil;
+import com.swing.menu.MenuCallback2;
+import com.swing.menu.MenuDto;
 import com.swing.messagebox.GUIUtil23;
 import com.swing.table.MyButtonEditor;
 import com.swing.table.MyButtonRender;
@@ -49,6 +51,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.*;
 import java.util.Timer;
 
@@ -481,11 +484,15 @@ public class ZkEditorApp extends GenericFrame {
                     public void callback(JTable jTable, MouseEvent e, Object object) {
                         System.out.println("鼠标右键 :");
                         JPopupMenu popupmenu = new JPopupMenu();
-                        JMenuItem intoDirM = new JMenuItem("进入目录");
+                        /*JMenuItem intoDirM = new JMenuItem("进入目录");
                         JMenuItem copyM = new JMenuItem("复制");
 
                         popupmenu.add(intoDirM);
-                        popupmenu.add(copyM);
+                        popupmenu.add(copyM);*/
+
+                        MenuDto menuDto = buildMenuDto(zkNodeTable);
+
+                        buildPopupMenu(popupmenu, menuDto);
                         popupmenu.show(e.getComponent(), e.getX() + 15, e.getY());
                     }
                 }
@@ -496,6 +503,54 @@ public class ZkEditorApp extends GenericFrame {
                     }
                 });
         zkNodeTable.addMouseListener(mouseInputListener);
+    }
+
+    public static void buildPopupMenu(JPopupMenu popupmenu, MenuDto menuDto) {
+        Map<String, MenuCallback2> callback2Map = menuDto.getCallback2Map();
+        //监听器
+        ActionListener menuListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String command = e.getActionCommand();
+                MenuCallback2 callback2 = callback2Map.get(command);
+                if (null != callback2) {
+                    callback2.actionPerformed(e);
+                }
+            }
+        };
+
+        //菜单子项
+        List<String> menuItemLabelList = menuDto.getMenuItemLabelList();
+        int size = menuItemLabelList.size();
+        for (int i = 0; i < size; i++) {
+            JMenuItem copyM = new JMenuItem(menuItemLabelList.get(i));
+            copyM.addActionListener(menuListener);
+            popupmenu.add(copyM);
+        }
+    }
+
+    private MenuDto buildMenuDto(JTable zkNodeTable) {
+        MenuDto menuDto = new MenuDto();
+
+        String menuItemLabel = "进入目录";
+        MenuCallback2 callback2 = new MenuCallback2() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                System.out.println("进入目录 :");
+            }
+        };
+        menuDto.put(menuItemLabel, callback2);
+
+        menuItemLabel = "复制";
+        callback2 = new MenuCallback2() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                System.out.println("复制 ### :");
+            }
+        };
+        menuDto.put(menuItemLabel, callback2);
+
+        return menuDto;
     }
 
     private void createZkNodeAction(int index2) {

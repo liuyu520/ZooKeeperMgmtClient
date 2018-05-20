@@ -31,6 +31,8 @@ import com.swing.messagebox.GUIUtil23;
 import com.swing.table.MyButtonEditor;
 import com.swing.table.MyButtonRender;
 import com.swing.table.TableUtil3;
+import com.swing.table.callback.TableCellMidClickCallback;
+import com.swing.table.callback.TableRightClickCallback;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 
@@ -38,13 +40,11 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.MouseInputListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -358,6 +358,7 @@ public class ZkEditorApp extends GenericFrame {
         panel_1.add(scrollPane, gbc_scrollPane);
 
         zkNodeTable = new JTable();
+        rendTable2(zkNodeTable);//表格绑定鼠标事件
         scrollPane.setViewportView(zkNodeTable);
 
         JPanel panel_5 = new JPanel();
@@ -467,6 +468,34 @@ public class ZkEditorApp extends GenericFrame {
         //
         ZkConnect.getEventBus().register(this);
         timingSave();
+    }
+
+    /***
+     * 表格绑定鼠标事件
+     * @param zkNodeTable
+     */
+    private void rendTable2(JTable zkNodeTable) {
+        final MouseInputListener mouseInputListener = TableUtil3.getMouseInputListener(zkNodeTable,
+                new TableRightClickCallback() {
+                    @Override
+                    public void callback(JTable jTable, MouseEvent e, Object object) {
+                        System.out.println("鼠标右键 :");
+                        JPopupMenu popupmenu = new JPopupMenu();
+                        JMenuItem intoDirM = new JMenuItem("进入目录");
+                        JMenuItem copyM = new JMenuItem("复制");
+
+                        popupmenu.add(intoDirM);
+                        popupmenu.add(copyM);
+                        popupmenu.show(e.getComponent(), e.getX() + 15, e.getY());
+                    }
+                }
+                , new TableCellMidClickCallback() {
+                    @Override
+                    public void callback(JTable jTable, MouseEvent e, Object object) {
+                        System.out.println("鼠标中键 ###");
+                    }
+                });
+        zkNodeTable.addMouseListener(mouseInputListener);
     }
 
     private void createZkNodeAction(int index2) {

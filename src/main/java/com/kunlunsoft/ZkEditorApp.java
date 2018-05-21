@@ -507,6 +507,11 @@ public class ZkEditorApp extends GenericFrame {
     }
 
 
+    /***
+     * 右键菜单<br />
+     * 构建菜单
+     * @return
+     */
     private MenuDto buildMenuDto(/*JTable jTable*/) {
         MenuDto menuDto = new MenuDto();
 
@@ -529,6 +534,16 @@ public class ZkEditorApp extends GenericFrame {
                 String val = (String) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 1);
                 WindowUtil.setSysClipboardText(key + "=" + SystemHWUtil.delEgdeDoubleQuotation(val));
                 ToastMessage.toast("已复制到剪切板", 2000);
+            }
+        };
+        menuDto.put(menuItemLabel, callback2);
+
+        menuItemLabel = "删除";
+        callback2 = new MenuCallback2() {
+            @Override
+            public void actionPerformed(ActionEvent event, TableInfo tableInfo) {
+                JButton delBtn = (JButton) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 2);
+                delBtn.doClick();
             }
         };
         menuDto.put(menuItemLabel, callback2);

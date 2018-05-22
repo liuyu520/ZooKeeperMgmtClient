@@ -1149,21 +1149,10 @@ public class ZkEditorApp extends GenericFrame {
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
-                GenericDialog genericDialog = new GenericDialog() {
-                    @Override
-                    public void layout3(Container contentPane) {
-                        super.layout3(contentPane);
-                        setLoc(600, 500);
-                        CodeRSyntaxTextArea jsonTextArea = new CodeRSyntaxTextArea();
-                        final JScrollPane scrollPane = new JScrollPane(jsonTextArea);
-                        jsonTextArea.setText(JSONHWUtil.formatJson(oldContent));
-                        contentPane.add(scrollPane);
-
-                        DialogUtil.escape2CloseDialog(this);
-                    }
-                };
-                genericDialog.launchFrame("查看配置");
+                showViewCodeDialog(oldContent, "查看配置");
             }
+
+
         });
         fileM.add(configItem);
         fileM.add(viewConfigItem);
@@ -1185,6 +1174,27 @@ public class ZkEditorApp extends GenericFrame {
         setJMenuBar(menuBar);
     }
 
+    /***
+     * 弹出对话框,用于查看代码
+     * @param oldContent2
+     * @param title
+     */
+    public void showViewCodeDialog(String oldContent2, String title) {
+        GenericDialog genericDialog = new GenericDialog() {
+            @Override
+            public void layout3(Container contentPane) {
+                super.layout3(contentPane);
+                setLoc(600, 500);
+                CodeRSyntaxTextArea jsonTextArea = new CodeRSyntaxTextArea();
+                final JScrollPane scrollPane = new JScrollPane(jsonTextArea);
+                jsonTextArea.setText(JSONHWUtil.formatJson(oldContent2));
+                contentPane.add(scrollPane);
+
+                DialogUtil.escape2CloseDialog(this);
+            }
+        };
+        genericDialog.launchFrame(title);
+    }
     /***
      * 重新连接<br />
      * 调用时机:<br />

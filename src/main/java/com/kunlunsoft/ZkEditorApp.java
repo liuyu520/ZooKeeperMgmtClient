@@ -6,6 +6,7 @@ import com.common.util.WindowUtil;
 import com.google.common.eventbus.Subscribe;
 import com.io.hw.file.util.FileUtils;
 import com.io.hw.json.HWJacksonUtils;
+import com.io.hw.json.JSONHWUtil;
 import com.kunlunsoft.component.DelButton;
 import com.kunlunsoft.component.EditButton;
 import com.kunlunsoft.component.EnterDirectoryBtn;
@@ -27,6 +28,7 @@ import com.swing.callback.Callback2;
 import com.swing.component.AssistPopupTextArea;
 import com.swing.component.AssistPopupTextField;
 import com.swing.dialog.DialogUtil;
+import com.swing.dialog.GenericDialog;
 import com.swing.dialog.GenericFrame;
 import com.swing.dialog.toast.ToastMessage;
 import com.swing.event.EventHWUtil;
@@ -42,6 +44,7 @@ import com.swing.table.callback.TableCellMidClickCallback;
 import com.swing.table.callback.TableRightClickCallback;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
+import org.fife.ui.rsyntaxtextarea.code.CodeRSyntaxTextArea;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -56,8 +59,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.Timer;
 
 public class ZkEditorApp extends GenericFrame {
@@ -834,9 +837,7 @@ public class ZkEditorApp extends GenericFrame {
             //如果缓存文件存在,则先把内容读取出来
             //不能直接覆盖,而是增量
             try {
-                FileInputStream inputStream = new FileInputStream(file);
-                String oldContent = FileUtils.getFullContent4(inputStream, SystemHWUtil.CHARSET_UTF);
-                inputStream.close();
+                String oldContent = getConfigContent(file);
                 if (!ValueWidget.isNullOrEmpty(oldContent)) {
                     Map<String, Map<String, String>> searchResultCacheMapOld = HWJacksonUtils.deSerializeMap(oldContent, HashMap.class);
                     if (!ValueWidget.isNullOrEmpty(searchResultCacheMapOld)) {
@@ -1093,9 +1094,7 @@ public class ZkEditorApp extends GenericFrame {
         if (!configFile.exists()) {
             return false;
         }
-        InputStream inStream = new FileInputStream(configFile);
-        String resumeInput = FileUtils.getFullContent4(inStream, SystemHWUtil.CHARSET_UTF);
-        inStream.close();//及时关闭资源
+        String resumeInput = getConfigContent(configFile);
         if (ValueWidget.isNullOrEmpty(resumeInput)) {
             GUIUtil23.warningDialog("请先去进行配置");
             return false;
@@ -1108,10 +1107,18 @@ public class ZkEditorApp extends GenericFrame {
         return true;
     }
 
+    private static String getConfigContent(File configFile) throws IOException {
+        InputStream inStream = new FileInputStream(configFile);
+        String resumeInput = FileUtils.getFullContent4(inStream, SystemHWUtil.CHARSET_UTF);
+        inStream.close();//及时关闭资源
+        return resumeInput;
+    }
+
     private void setMenuBar2() {
         JMenuBar menuBar = new JMenuBar();
         JMenu fileM = new JMenu("File");
         JMenuItem configItem = new JMenuItem("配置");
+        JMenuItem viewConfigItem = new JMenuItem("查看配置");
         JMenuItem connectItem = new JMenuItem("重新连接");
         configItem.addActionListener(new ActionListener() {
             @Override
@@ -1131,7 +1138,35 @@ public class ZkEditorApp extends GenericFrame {
                 }
             }
         });
+        viewConfigItem.addActionListener(new ActionListener() {
+            String oldContent = null;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                try {
+                    oldContent = getConfigContent(configFile);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+                GenericDialog genericDialog = new GenericDialog() {
+                    @Override
+                    public void layout3(Container contentPane) {
+                        super.layout3(contentPane);
+                        setLoc(600, 500);
+                        CodeRSyntaxTextArea jsonTextArea = new CodeRSyntaxTextArea();
+                        final JScrollPane scrollPane = new JScrollPane(jsonTextArea);
+                        jsonTextArea.setText(JSONHWUtil.formatJson(oldContent));
+                        contentPane.add(scrollPane);
+
+                        DialogUtil.escape2CloseDialog(this);
+                    }
+                };
+                genericDialog.launchFrame("查看配置");
+            }
+        });
         fileM.add(configItem);
+        fileM.add(viewConfigItem);
         menuBar.add(fileM);
 
         MenuBarListener menuBarListener = new MenuBarListener(configInfo);

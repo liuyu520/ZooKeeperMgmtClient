@@ -12,7 +12,9 @@ import com.kunlunsoft.component.EnterDirectoryBtn;
 import com.kunlunsoft.conn.ConnItem;
 import com.kunlunsoft.conn.ZkConnectMgmt;
 import com.kunlunsoft.dialog.ConfigDialog;
+import com.kunlunsoft.dto.CheckboxParam;
 import com.kunlunsoft.dto.ConfigInfo;
+import com.kunlunsoft.dto.ZkEnvironment;
 import com.kunlunsoft.event.SaveConfigEvent;
 import com.kunlunsoft.event.ZkConnSuccessEvent;
 import com.kunlunsoft.event.ZkModifyEvent;
@@ -53,6 +55,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.*;
 import java.util.Timer;
 
@@ -97,6 +100,7 @@ public class ZkEditorApp extends GenericFrame {
      * g管理各环境的连接
      */
     private ZkConnectMgmt zkConnectMgmt;
+    private List<CheckboxParam> checkboxParamList;
 
     /**
      * Launch the application.
@@ -192,9 +196,31 @@ public class ZkEditorApp extends GenericFrame {
         gbc_panel_2.gridy = 2;
         panel.add(panel_2, gbc_panel_2);
 
+        //d读取配置文件,之所以把读取提前到这里,是因为 JCheckBox 是根据配置文件动态生成的
+        boolean readConfigSuccess = false;
+        try {
+            readConfigSuccess = readConfig();//必须在connectServer()方法之前
+        } catch (IOException e) {
+            e.printStackTrace();
+            ToastMessage.toast("读取配置文件失败", 2000, Color.red);
+        }
+
+
+        /*List<CheckboxParam>*/
+        checkboxParamList = buildCheckbox();
+        if (!ValueWidget.isNullOrEmpty(checkboxParamList)) {
+            int size2 = checkboxParamList.size();
+            for (int i = 0; i < size2; i++) {
+                CheckboxParam checkboxParam = checkboxParamList.get(i);
+                testCheckBox = new JCheckBox(checkboxParam.getDisplayLabel());
+                checkboxParam.setCheckBox(testCheckBox);
+//        testCheckBox.setSelected(true);
+                panel_2.add(testCheckBox);
+            }
+        }
 //		JCheckBox onlinehCeckBox = new JCheckBox("线上");
 //		panel_2.add(onlinehCeckBox);
-        testCheckBox = new JCheckBox("测试");
+       /* testCheckBox = new JCheckBox("测试");
 //        testCheckBox.setSelected(true);
         panel_2.add(testCheckBox);
 
@@ -208,7 +234,7 @@ public class ZkEditorApp extends GenericFrame {
 
         onlineCheckBox = new JCheckBox("线上");
 //        onlineCheckBox.setSelected(true);
-        panel_2.add(onlineCheckBox);
+        panel_2.add(onlineCheckBox);*/
 
         JPanel panel_3 = new JPanel();
         GridBagConstraints gbc_panel_3 = new GridBagConstraints();
@@ -225,14 +251,23 @@ public class ZkEditorApp extends GenericFrame {
                 if (check()) return;
 
                 boolean hasSelected = false;
-                if (inteCheckBox.isSelected()) {
+                int size = checkboxParamList.size();
+                for (int i = 0; i < size; i++) {
+                    CheckboxParam checkboxParam = checkboxParamList.get(i);
+                    JCheckBox checkBox = checkboxParam.getCheckBox();
+                    if (checkBox.isSelected()) {
+                        updateZkNodeAction(checkboxParam.getId());
+                        hasSelected = true;
+                    }
+                }
+               /* if (inteCheckBox.isSelected()) {
                     updateZkNodeAction(1);
                     hasSelected = true;
                 }
                 if (testCheckBox.isSelected()) {
                     updateZkNodeAction(0);
                     hasSelected = true;
-                }
+                }*/
                 if (!hasSelected) {
                     if (configInfo.isActivate()) {
                         String path = getRootPath();//configInfo.getZkRootPath();
@@ -250,14 +285,23 @@ public class ZkEditorApp extends GenericFrame {
                 if (check()) return;
 
                 boolean hasSelected = false;
-                if (inteCheckBox.isSelected()) {
+                int size = checkboxParamList.size();
+                for (int i = 0; i < size; i++) {
+                    CheckboxParam checkboxParam = checkboxParamList.get(i);
+                    JCheckBox checkBox = checkboxParam.getCheckBox();
+                    if (checkBox.isSelected()) {
+                        createZkNodeAction(checkboxParam.getId());
+                        hasSelected = true;
+                    }
+                }
+                /*if (inteCheckBox.isSelected()) {
                     createZkNodeAction(1);
                     hasSelected = true;
                 }
                 if (testCheckBox.isSelected()) {
                     createZkNodeAction(0);
                     hasSelected = true;
-                }
+                }*/
                 if (!hasSelected) {
                     if (configInfo.isActivate()) {
                         String path = getRootPath();
@@ -434,13 +478,6 @@ public class ZkEditorApp extends GenericFrame {
         });
         panel_6.add(backBtn);
 
-        boolean readConfigSuccess = false;
-        try {
-            readConfigSuccess = readConfig();//必须在connectServer()方法之前
-        } catch (IOException e) {
-            e.printStackTrace();
-            ToastMessage.toast("读取配置文件失败", 2000, Color.red);
-        }
 
         setMenuBar2();
         if (readConfigSuccess) {
@@ -474,6 +511,29 @@ public class ZkEditorApp extends GenericFrame {
         timingSave();
     }
 
+    public List<CheckboxParam> buildCheckbox() {
+        Map<Integer, String> indexCheckboxDisp = new HashMap<>();
+        indexCheckboxDisp.put(0, "测试");
+        indexCheckboxDisp.put(1, "集测");
+        indexCheckboxDisp.put(2, "模拟");
+        indexCheckboxDisp.put(3, "线上");
+        ConfigInfo configInfo = this.configInfo;
+        List<ZkEnvironment> environments = configInfo.getEnvironments();
+        List<CheckboxParam> checkboxParamList = new ArrayList<>();
+        int size = environments.size();
+        for (int i = 0; i < size; i++) {
+            ZkEnvironment zkEnvironment = environments.get(i);
+            if (!ValueWidget.isNullOrEmpty(zkEnvironment.getIp())
+                    && (!ValueWidget.isNullOrEmpty(zkEnvironment.getZkRootPath()))) {
+                CheckboxParam checkboxParam = new CheckboxParam();
+                checkboxParam.setId(i);
+                checkboxParam.setZkEnvironment(zkEnvironment);
+                checkboxParam.setDisplayLabel(indexCheckboxDisp.get(i));
+                checkboxParamList.add(checkboxParam);
+            }
+        }
+        return checkboxParamList;
+    }
     /***
      * 表格绑定鼠标事件
      * @param zkNodeTable

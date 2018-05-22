@@ -7,6 +7,7 @@ import com.kunlunsoft.dto.ZkEnvironment;
 import com.kunlunsoft.event.ZkConnSuccessEvent;
 import com.kunlunsoft.event.ZkModifyEvent;
 import com.string.widget.util.ValueWidget;
+import com.swing.callback.Callback2;
 import com.swing.messagebox.GUIUtil23;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.*;
@@ -51,7 +52,7 @@ public class ZkConnect {
         }
     }
 
-    public static Map<String, String> search(String path, ZooKeeper zk) throws KeeperException, InterruptedException {
+    public static Map<String, String> search(String path, ZooKeeper zk, /*ActionCallback*/Callback2 actionCallback) throws KeeperException, InterruptedException {
         String key = path.replace("/", "");
         if (searchResultCacheMap.containsKey(key)) {
             System.out.println("使用缓存 :" + path);
@@ -75,9 +76,13 @@ public class ZkConnect {
         }
         if (map.size() > 0) {
             searchResultCacheMap.put(key, map);
+            if (null != actionCallback) {
+                actionCallback.callback(path, searchResultCacheMap);
+            }
         }
         return map;
     }
+
 
     public static String getNodeValue(ZooKeeper zk, String zNodePath) throws KeeperException, InterruptedException {
         byte[] data = zk.getData(zNodePath, true, zk.exists(zNodePath, true));

@@ -23,6 +23,7 @@ import com.kunlunsoft.listener.MenuBarListener;
 import com.kunlunsoft.util.ZkConnect;
 import com.string.widget.util.RegexUtil;
 import com.string.widget.util.ValueWidget;
+import com.swing.callback.Callback2;
 import com.swing.component.AssistPopupTextArea;
 import com.swing.component.AssistPopupTextField;
 import com.swing.dialog.DialogUtil;
@@ -101,7 +102,10 @@ public class ZkEditorApp extends GenericFrame {
      */
     private ZkConnectMgmt zkConnectMgmt;
     private List<CheckboxParam> checkboxParamList;
-
+    /**
+     * 本地缓存文件
+     */
+    public static final String cacheFilePath = System.getProperty("user.home") + File.separator + "zk/cache.json";
     /**
      * Launch the application.
      */
@@ -740,20 +744,51 @@ public class ZkEditorApp extends GenericFrame {
     }
 
     public void setTableData2(String searchKeyWord, String path) {
+        //1. 判断连接是否可用
         if (null == zkConnItem) {
             GUIUtil23.warningDialog("zkConnItem 为空,请确认配置项是否为空,或者重新连接");
             return;
         }
+
+        //2. 清空表格
         TableUtil3.setTableData2(zkNodeTable, new Object[0][], columnNames);
         try {
-            resultMap = ZkConnect.search(path, zkConnItem.getZk());
+            //3. 不一定是真正的搜索
+            resultMap = ZkConnect.search(path, zkConnItem.getZk(), new Callback2() {
+                @Override
+                public String callback(String input, Object encoding) {
+                    //持久化缓存
+                    saveCache2LocalFile((Map<String, Map<String, String>>) encoding);
+                    return null;
+                }
+
+                @Override
+                public String getButtonLabel() {
+                    return null;
+                }
+
+                @Override
+                public Color getBackGroundColor() {
+                    return null;
+                }
+
+                @Override
+                public JPanel getUnicodePanel() {
+                    return null;
+                }
+
+                @Override
+                public void setUnicodePanel(JPanel unicodePanel) {
+
+                }
+            });
 
 //            System.out.println("map :" + resultMap);
             Object[][] datas = null;
             if (ValueWidget.isNullOrEmpty(searchKeyWord)) {
                 datas = parseTableDate(resultMap);
             } else {
-                if (fuzzyCheckBox.isSelected()) {
+                if (fuzzyCheckBox.isSelected()) {//模糊搜索
                     Map<String, String> filteMap = new TreeMap<>();
                     Set<String> keys = resultMap.keySet();
                     for (String key : keys) {
@@ -762,7 +797,7 @@ public class ZkEditorApp extends GenericFrame {
                         }
                     }
                     datas = parseTableDate(filteMap);
-                } else {
+                } else {//精确搜索
                     datas = accurateQuery(searchKeyWord);
                 }
             }
@@ -785,6 +820,37 @@ public class ZkEditorApp extends GenericFrame {
         }
     }
 
+    /***
+     * 持久化缓存到本地文件
+     * @param searchResultCacheMap : 缓存,见 ZkConnect
+     */
+    private void saveCache2LocalFile(Map<String, Map<String, String>> searchResultCacheMap) {
+        System.out.println("cacheFilePath :" + cacheFilePath);
+        File file = new File(cacheFilePath);
+        if (!file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
+        }
+        if (file.exists()) {
+            //如果缓存文件存在,则先把内容读取出来
+            //不能直接覆盖,而是增量
+            try {
+                FileInputStream inputStream = new FileInputStream(file);
+                String oldContent = FileUtils.getFullContent4(inputStream, SystemHWUtil.CHARSET_UTF);
+                inputStream.close();
+                if (!ValueWidget.isNullOrEmpty(oldContent)) {
+                    Map<String, Map<String, String>> searchResultCacheMapOld = HWJacksonUtils.deSerializeMap(oldContent, HashMap.class);
+                    if (!ValueWidget.isNullOrEmpty(searchResultCacheMapOld)) {
+                        searchResultCacheMapOld.putAll(searchResultCacheMap);
+                        searchResultCacheMap = searchResultCacheMapOld;
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        FileUtils.writeStrToFile(file, HWJacksonUtils.getJsonP(searchResultCacheMap), true);
+        ToastMessage.toast("保存缓存文件成功", 2000);
+    }
     public Object[][] accurateQuery(String searchKeyWord) {
         Object[][] datas;
         String searchVal = resultMap.get(searchKeyWord);

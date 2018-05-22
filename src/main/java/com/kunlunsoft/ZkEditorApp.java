@@ -548,6 +548,16 @@ public class ZkEditorApp extends GenericFrame {
         };
         menuDto.put(menuItemLabel, callback2);
 
+        menuItemLabel = "编辑";
+        callback2 = new MenuCallback2() {
+            @Override
+            public void actionPerformed(ActionEvent event, TableInfo tableInfo) {
+                JButton delBtn = (JButton) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 3);
+                delBtn.doClick();
+            }
+        };
+        menuDto.put(menuItemLabel, callback2);
+
         return menuDto;
     }
 
@@ -670,6 +680,10 @@ public class ZkEditorApp extends GenericFrame {
     }
 
     public void setTableData2(String searchKeyWord, String path) {
+        if (null == zkConnItem) {
+            GUIUtil23.warningDialog("zkConnItem 为空,请确认配置项是否为空,或者重新连接");
+            return;
+        }
         TableUtil3.setTableData2(zkNodeTable, new Object[0][], columnNames);
         try {
             resultMap = ZkConnect.search(path, zkConnItem.getZk());

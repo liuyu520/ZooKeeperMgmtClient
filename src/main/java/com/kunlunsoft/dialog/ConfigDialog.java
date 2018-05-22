@@ -187,6 +187,13 @@ public class ConfigDialog extends JDialog {
                 okButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
+                        //校验
+                        if (!DialogUtil.verifyTFEmpty(ipTextArea, "ip")) {
+                            return;
+                        }
+                        if (!DialogUtil.verifyTFEmpty(rootpathtextField, "路径")) {
+                            return;
+                        }
                         saveAction(configInfo);
                         ConfigDialog.this.dispose();
                     }

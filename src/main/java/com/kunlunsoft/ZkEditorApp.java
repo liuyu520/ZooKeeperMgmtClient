@@ -56,9 +56,7 @@ import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 import java.util.List;
 import java.util.Timer;
@@ -837,7 +835,7 @@ public class ZkEditorApp extends GenericFrame {
             //如果缓存文件存在,则先把内容读取出来
             //不能直接覆盖,而是增量
             try {
-                String oldContent = getConfigContent(file);
+                String oldContent = ZkConnect.getConfigContent(file);
                 if (!ValueWidget.isNullOrEmpty(oldContent)) {
                     Map<String, Map<String, String>> searchResultCacheMapOld = HWJacksonUtils.deSerializeMap(oldContent, HashMap.class);
                     if (!ValueWidget.isNullOrEmpty(searchResultCacheMapOld)) {
@@ -1094,7 +1092,7 @@ public class ZkEditorApp extends GenericFrame {
         if (!configFile.exists()) {
             return false;
         }
-        String resumeInput = getConfigContent(configFile);
+        String resumeInput = ZkConnect.getConfigContent(configFile);
         if (ValueWidget.isNullOrEmpty(resumeInput)) {
             GUIUtil23.warningDialog("请先去进行配置");
             return false;
@@ -1107,12 +1105,6 @@ public class ZkEditorApp extends GenericFrame {
         return true;
     }
 
-    private static String getConfigContent(File configFile) throws IOException {
-        InputStream inStream = new FileInputStream(configFile);
-        String resumeInput = FileUtils.getFullContent4(inStream, SystemHWUtil.CHARSET_UTF);
-        inStream.close();//及时关闭资源
-        return resumeInput;
-    }
 
     private void setMenuBar2() {
         JMenuBar menuBar = new JMenuBar();
@@ -1145,7 +1137,7 @@ public class ZkEditorApp extends GenericFrame {
             public void actionPerformed(ActionEvent e) {
 
                 try {
-                    oldContent = getConfigContent(configFile);
+                    oldContent = ZkConnect.getConfigContent(configFile);
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
@@ -1163,10 +1155,13 @@ public class ZkEditorApp extends GenericFrame {
         JMenuItem cleanAllItem = new JMenuItem("清除全部");
         cleanAllItem.addActionListener(menuBarListener);
         JMenuItem cleanOneItemItem = new JMenuItem("清除当前路径");
+        JMenuItem readCacheItemItem = new JMenuItem("读取缓存");
         cleanOneItemItem.addActionListener(menuBarListener);
+        readCacheItemItem.addActionListener(menuBarListener);
 
         cleanCacheM.add(cleanAllItem);
         cleanCacheM.add(cleanOneItemItem);
+        cleanCacheM.add(readCacheItemItem);//读取缓存
 
         menuBar.add(cleanCacheM);
 //        menuBar.add(configItem);
@@ -1259,7 +1254,14 @@ public class ZkEditorApp extends GenericFrame {
         if (null != configFile) {
             //处理
             System.out.println("保存文件:" + configFilePath);
-            FileUtils.writeToFile(configFile, HWJacksonUtils.getJsonP(this.configInfo), SystemHWUtil.CHARSET_UTF);
+            String content = HWJacksonUtils.getJsonP(this.configInfo);
+            if (ValueWidget.isNullOrEmpty(content)
+                    || content.length() < 20) {
+                String msg = "要保存的内容太小,不保存";
+                System.out.println("msg :" + msg);
+                return;
+            }
+            FileUtils.writeToFile(configFile, content, SystemHWUtil.CHARSET_UTF);
             CMDUtil.hide(configFilePath);
         }
     }

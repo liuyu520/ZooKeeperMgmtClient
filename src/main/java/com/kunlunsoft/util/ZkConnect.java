@@ -2,6 +2,7 @@ package com.kunlunsoft.util;
 
 import com.common.util.SystemHWUtil;
 import com.google.common.eventbus.EventBus;
+import com.io.hw.file.util.FileUtils;
 import com.kunlunsoft.conn.ConnItem;
 import com.kunlunsoft.dto.ZkEnvironment;
 import com.kunlunsoft.event.ZkConnSuccessEvent;
@@ -12,7 +13,7 @@ import com.swing.messagebox.GUIUtil23;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.*;
 
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.*;
 
 public class ZkConnect {
@@ -40,6 +41,17 @@ public class ZkConnect {
         if (0 != searchResultCacheMap.size()) {
             searchResultCacheMap = new HashMap<>();
         }
+    }
+
+    /***
+     * 从本地文件读取缓存到内存
+     * @param searchResultCacheMapCache
+     */
+    public static void mergeCache(Map<String, Map<String, String>> searchResultCacheMapCache) {
+        if (null == searchResultCacheMapCache) {
+            return;
+        }
+        searchResultCacheMapCache.putAll(searchResultCacheMapCache);
     }
 
     /***
@@ -191,5 +203,12 @@ public class ZkConnect {
 
     public static EventBus getEventBus() {
         return eventBus;
+    }
+
+    public static String getConfigContent(File configFile) throws IOException {
+        InputStream inStream = new FileInputStream(configFile);
+        String resumeInput = FileUtils.getFullContent4(inStream, SystemHWUtil.CHARSET_UTF);
+        inStream.close();//及时关闭资源
+        return resumeInput;
     }
 }

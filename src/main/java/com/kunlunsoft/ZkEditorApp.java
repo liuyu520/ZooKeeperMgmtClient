@@ -27,6 +27,7 @@ import com.swing.callback.Callback2;
 import com.swing.component.AssistPopupTextArea;
 import com.swing.component.AssistPopupTextField;
 import com.swing.component.ComponentUtil;
+import com.swing.component.bean.PageDto;
 import com.swing.dialog.DialogUtil;
 import com.swing.dialog.GenericDialog;
 import com.swing.dialog.GenericFrame;
@@ -633,8 +634,11 @@ public class ZkEditorApp extends GenericFrame {
             @Override
             public void actionPerformed(ActionEvent event, TableInfo tableInfo) {
                 MyPassCheckBox checkBox = (MyPassCheckBox) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 0);
-
-                ComponentUtil.dealMultiSelect(checkBoxes, new ActionCallback() {
+                PageDto pageDto = new PageDto();
+                pageDto.setCheckBoxes(checkBoxes)
+                        .setStartIndex(0)
+                        .setCount(100);
+                ComponentUtil.dealMultiSelect(pageDto, new ActionCallback() {
                     @Override
                     public void actionPerformed(ActionEvent evt, JComponent component) {
                         String rootPath = getRootPath();

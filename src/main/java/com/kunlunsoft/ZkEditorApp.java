@@ -7,10 +7,7 @@ import com.google.common.eventbus.Subscribe;
 import com.io.hw.file.util.FileUtils;
 import com.io.hw.json.HWJacksonUtils;
 import com.io.hw.json.JSONHWUtil;
-import com.kunlunsoft.component.DelButton;
-import com.kunlunsoft.component.EditButton;
-import com.kunlunsoft.component.EnterDirectoryBtn;
-import com.kunlunsoft.component.MyPassCheckBox;
+import com.kunlunsoft.component.*;
 import com.kunlunsoft.conn.ConnItem;
 import com.kunlunsoft.conn.ZkConnectMgmt;
 import com.kunlunsoft.dialog.ConfigDialog;
@@ -39,7 +36,6 @@ import com.swing.menu.MenuDto;
 import com.swing.menu.MenuUtil2;
 import com.swing.menu.TableInfo;
 import com.swing.messagebox.GUIUtil23;
-import com.swing.table.MyButtonEditor;
 import com.swing.table.MyButtonRender;
 import com.swing.table.TableUtil3;
 import com.swing.table.callback.TableCellMidClickCallback;
@@ -415,7 +411,7 @@ public class ZkEditorApp extends GenericFrame {
         panel_1.add(scrollPane, gbc_scrollPane);
 
         zkNodeTable = new JTable();
-        rendTable2(zkNodeTable);//表格绑定鼠标事件
+        rendTable2(zkNodeTable, null);//表格绑定鼠标事件
         scrollPane.setViewportView(zkNodeTable);
 
         JPanel panel_5 = new JPanel();
@@ -547,13 +543,14 @@ public class ZkEditorApp extends GenericFrame {
      * 表格绑定鼠标事件
      * @param zkNodeTable
      */
-    private void rendTable2(JTable zkNodeTable) {
+    public void rendTable2(JTable zkNodeTable, JComponent target) {
         final MouseInputListener mouseInputListener = TableUtil3.getMouseInputListener(zkNodeTable,
                 new TableRightClickCallback() {
                     @Override
                     public void callback(JTable jTable, MouseEvent e, Object object) {
                         System.out.println("鼠标右键 :");
                         JPopupMenu popupmenu = new JPopupMenu();
+//                        System.out.println("source :" + e.getSource());
                         /*JMenuItem intoDirM = new JMenuItem("进入目录");
                         JMenuItem copyM = new JMenuItem("复制");
 
@@ -572,7 +569,10 @@ public class ZkEditorApp extends GenericFrame {
                         System.out.println("鼠标中键 ###");
                     }
                 });
-        zkNodeTable.addMouseListener(mouseInputListener);
+        if (null == target) {
+            target = zkNodeTable;
+        }
+        target.addMouseListener(mouseInputListener);
     }
 
 
@@ -932,7 +932,7 @@ public class ZkEditorApp extends GenericFrame {
 //        int width=120;
         TableColumn tableColumn0 = columnModel.getColumn(0);
         tableColumn0.setCellRenderer(new MyButtonRender());
-        tableColumn0.setCellEditor(new MyButtonEditor());
+        tableColumn0.setCellEditor(new MyButtonEditor(this));
 //        tableColumn0.setWidth(width);
 //        tableColumn0.setMinWidth(width);
 //        TableColumn tableColumn1=columnModel.getColumn(1);
@@ -980,6 +980,7 @@ public class ZkEditorApp extends GenericFrame {
             Object[] objs = new Object[6];
             MyPassCheckBox isSelCheckbox = new MyPassCheckBox(
                     String.valueOf(index + 1));
+//            rendTable2(zkNodeTable,isSelCheckbox);
             isSelCheckbox.setOpaque(false);// 使复选框透明
             isSelCheckbox.setzNodePath(key);
             objs[0] = isSelCheckbox;
@@ -1330,6 +1331,10 @@ public class ZkEditorApp extends GenericFrame {
             FileUtils.writeToFile(configFile, content, SystemHWUtil.CHARSET_UTF);
             CMDUtil.hide(configFilePath);
         }
+    }
+
+    public JTable getZkNodeTable() {
+        return zkNodeTable;
     }
 }
 

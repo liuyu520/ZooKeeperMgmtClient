@@ -18,4 +18,9 @@ public class MyPassCheckBox extends JCheckBox {
     public void setzNodePath(String zNodePath) {
         this.zNodePath = zNodePath;
     }
+
+    @Override
+    public String toString() {
+        return "checkbox:" + zNodePath;
+    }
 }

@@ -1,5 +1,7 @@
 package com.kunlunsoft.component;
 
+import com.kunlunsoft.ZkEditorApp;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -15,14 +17,19 @@ public class MyButtonEditor extends DefaultCellEditor {
 
     private JButton button;
     private Object obj = null;
+    private ZkEditorApp zkEditorApp;
 
     public MyButtonEditor() {
+        this(null);
+    }
+
+    public MyButtonEditor(ZkEditorApp zkEditorApp) {
         // DefautlCellEditor有此构造器，需要传入一个，但这个不会使用到，直接new一个即可。
         super(new JTextField());
 
         // 设置点击几次激活编辑。
         this.setClickCountToStart(1);
-
+        this.zkEditorApp = zkEditorApp;
 //        this.initButton();
 //
 //        this.initPanel();
@@ -66,7 +73,12 @@ public class MyButtonEditor extends DefaultCellEditor {
         // 只为按钮赋值即可。也可以作其它操作。
 
         obj = value;
-
+        if (obj instanceof MyPassCheckBox) {
+            MyPassCheckBox checkBox = (MyPassCheckBox) obj;
+            if (!checkBox.getzNodePath().equals("APP_KEY_DECODE")) {
+                this.zkEditorApp.rendTable2(this.zkEditorApp.getZkNodeTable(), checkBox);
+            }
+        }
         return (JComponent) value;
 
     }

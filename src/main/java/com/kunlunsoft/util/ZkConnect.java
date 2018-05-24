@@ -9,6 +9,7 @@ import com.kunlunsoft.event.ZkConnSuccessEvent;
 import com.kunlunsoft.event.ZkModifyEvent;
 import com.string.widget.util.ValueWidget;
 import com.swing.callback.Callback2;
+import com.swing.dialog.toast.ToastMessage;
 import com.swing.messagebox.GUIUtil23;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.*;
@@ -210,5 +211,29 @@ public class ZkConnect {
         String resumeInput = FileUtils.getFullContent4(inStream, SystemHWUtil.CHARSET_UTF);
         inStream.close();//及时关闭资源
         return resumeInput;
+    }
+
+    /***
+     * 删除节点
+     * @param zooKeeper
+     * @param nodeKey
+     * @param rootPath
+     * @return
+     * @throws Exception
+     */
+    public static boolean deleteNodeAction(ZooKeeper zooKeeper, String nodeKey, String rootPath) throws Exception {
+
+        if (!rootPath.endsWith("/")) {
+            rootPath = rootPath + "/";
+        }
+        String fullPath = rootPath + nodeKey;
+        List<String> zNodes = zooKeeper.getChildren(fullPath, true);
+        if (!ValueWidget.isNullOrEmpty(zNodes)) {//不是普通的节点,是目录
+            ToastMessage.toast("目录不为空,不允许直接删除:" + nodeKey, 2000, java.awt.Color.RED);
+            return true;
+        }
+        ZkConnect.deleteNode(zooKeeper, fullPath);
+
+        return false;
     }
 }

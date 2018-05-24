@@ -28,6 +28,7 @@ import com.string.widget.util.ValueWidget;
 import com.swing.callback.Callback2;
 import com.swing.component.AssistPopupTextArea;
 import com.swing.component.AssistPopupTextField;
+import com.swing.component.ComponentUtil;
 import com.swing.dialog.DialogUtil;
 import com.swing.dialog.GenericDialog;
 import com.swing.dialog.GenericFrame;
@@ -108,6 +109,8 @@ public class ZkEditorApp extends GenericFrame {
      * 本地缓存文件
      */
     public static final String cacheFilePath = System.getProperty("user.home") + File.separator + "zk/cache.json";
+    private ArrayList<MyPassCheckBox> checkBoxes = new ArrayList<MyPassCheckBox>(
+            100);
     /**
      * Launch the application.
      */
@@ -585,7 +588,7 @@ public class ZkEditorApp extends GenericFrame {
         MenuCallback2 callback2 = new MenuCallback2() {
             @Override
             public void actionPerformed(ActionEvent event, TableInfo tableInfo) {
-                String val = (String) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 0);
+                String val = (String) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 1);
                 System.out.println("进入目录 :" + val);
                 intoDir(val);
             }
@@ -596,8 +599,8 @@ public class ZkEditorApp extends GenericFrame {
         callback2 = new MenuCallback2() {
             @Override
             public void actionPerformed(ActionEvent event, TableInfo tableInfo) {
-                String key = (String) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 0);
-                String val = (String) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 1);
+                String key = (String) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 1);
+                String val = (String) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 2);
                 WindowUtil.setSysClipboardText(key + "=" + SystemHWUtil.delEgdeDoubleQuotation(val));
                 ToastMessage.toast("已复制到剪切板", 2000);
             }
@@ -608,7 +611,7 @@ public class ZkEditorApp extends GenericFrame {
         callback2 = new MenuCallback2() {
             @Override
             public void actionPerformed(ActionEvent event, TableInfo tableInfo) {
-                JButton delBtn = (JButton) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 2);
+                JButton delBtn = (JButton) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 3);
                 delBtn.doClick();
             }
         };
@@ -618,13 +621,58 @@ public class ZkEditorApp extends GenericFrame {
         callback2 = new MenuCallback2() {
             @Override
             public void actionPerformed(ActionEvent event, TableInfo tableInfo) {
-                JButton delBtn = (JButton) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 3);
+                JButton delBtn = (JButton) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 4);
                 delBtn.doClick();
             }
         };
         menuDto.put(menuItemLabel, callback2);
 
+        menuItemLabel = "删除选中";
+        callback2 = new MenuCallback2() {
+            @Override
+            public void actionPerformed(ActionEvent event, TableInfo tableInfo) {
+                MyPassCheckBox checkBox = (MyPassCheckBox) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 0);
+
+                int sum_sel = ComponentUtil.getSelSum(checkBoxes, 0, 100);
+                if (sum_sel > 0) {
+                    int result = JOptionPane.showConfirmDialog(
+                            null,
+                            "<html>Are you sure to remove "
+                                    + String.format(SystemHWUtil.SWING_DIALOG_RED,
+                                    sum_sel) + " record(s)?</html>",
+                            "question", JOptionPane.OK_CANCEL_OPTION);
+                    if (result == JOptionPane.OK_OPTION) {
+                        String rootPath = getRootPath();
+                        for (int i = 0; i < checkBoxes.size(); i++) {
+                            MyPassCheckBox che = checkBoxes.get(i);
+                            if (che.isSelected()) {
+                                String nodeKey = che.getzNodePath();
+                                System.out.println(" :" + nodeKey);
+
+                                ZooKeeper zooKeeper = zkConnItem.getZk();
+                                try {
+                                    if (ZkConnect.deleteNodeAction(zooKeeper, nodeKey, rootPath)) return;
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                        ZkConnect.clearCache(rootPath);
+                        searchAction();
+                    }
+                } else {
+                    pleaseSelectOne();
+                }
+            }
+        };
+        menuDto.put(menuItemLabel, callback2);
+
         return menuDto;
+    }
+
+    private void pleaseSelectOne() {
+        JOptionPane.showMessageDialog(null, "Please select one", "warning",
+                JOptionPane.WARNING_MESSAGE);
     }
 
     private void createZkNodeAction(int index2) {
@@ -921,7 +969,11 @@ public class ZkEditorApp extends GenericFrame {
 
     public Object[][] parseTableDate(Map<String, String> map) {
         Set<String> keys = map.keySet();
-        Object[][] datas = new Object[keys.size()][];
+        int size = keys.size();
+        Object[][] datas = new Object[size][];
+        if (size != 0 && checkBoxes.size() != 0) {
+            checkBoxes.clear();
+        }
         int index = 0;
 //        int i=0;
         for (String key : keys) {
@@ -929,8 +981,9 @@ public class ZkEditorApp extends GenericFrame {
             MyPassCheckBox isSelCheckbox = new MyPassCheckBox(
                     String.valueOf(index + 1));
             isSelCheckbox.setOpaque(false);// 使复选框透明
+            isSelCheckbox.setzNodePath(key);
             objs[0] = isSelCheckbox;
-
+            checkBoxes.add(isSelCheckbox);
             objs[1] = key;
             String nodeVal = map.get(key);
             objs[2] = "\"" + nodeVal + "\"";

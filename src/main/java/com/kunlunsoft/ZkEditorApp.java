@@ -22,6 +22,7 @@ import com.kunlunsoft.listener.MenuBarListener;
 import com.kunlunsoft.util.ZkConnect;
 import com.string.widget.util.RegexUtil;
 import com.string.widget.util.ValueWidget;
+import com.swing.callback.ActionCallback;
 import com.swing.callback.Callback2;
 import com.swing.component.AssistPopupTextArea;
 import com.swing.component.AssistPopupTextField;
@@ -633,15 +634,9 @@ public class ZkEditorApp extends GenericFrame {
             public void actionPerformed(ActionEvent event, TableInfo tableInfo) {
                 MyPassCheckBox checkBox = (MyPassCheckBox) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 0);
 
-                int sum_sel = ComponentUtil.getSelSum(checkBoxes, 0, 100);
-                if (sum_sel > 0) {
-                    int result = JOptionPane.showConfirmDialog(
-                            null,
-                            "<html>Are you sure to remove "
-                                    + String.format(SystemHWUtil.SWING_DIALOG_RED,
-                                    sum_sel) + " record(s)?</html>",
-                            "question", JOptionPane.OK_CANCEL_OPTION);
-                    if (result == JOptionPane.OK_OPTION) {
+                ComponentUtil.dealMultiSelect(checkBoxes, new ActionCallback() {
+                    @Override
+                    public void actionPerformed(ActionEvent evt, JComponent component) {
                         String rootPath = getRootPath();
                         for (int i = 0; i < checkBoxes.size(); i++) {
                             MyPassCheckBox che = checkBoxes.get(i);
@@ -660,19 +655,12 @@ public class ZkEditorApp extends GenericFrame {
                         ZkConnect.clearCache(rootPath);
                         searchAction();
                     }
-                } else {
-                    pleaseSelectOne();
-                }
+                });
             }
         };
         menuDto.put(menuItemLabel, callback2);
 
         return menuDto;
-    }
-
-    private void pleaseSelectOne() {
-        JOptionPane.showMessageDialog(null, "Please select one", "warning",
-                JOptionPane.WARNING_MESSAGE);
     }
 
     private void createZkNodeAction(int index2) {

@@ -10,6 +10,7 @@ import com.io.hw.json.JSONHWUtil;
 import com.kunlunsoft.component.DelButton;
 import com.kunlunsoft.component.EditButton;
 import com.kunlunsoft.component.EnterDirectoryBtn;
+import com.kunlunsoft.component.MyPassCheckBox;
 import com.kunlunsoft.conn.ConnItem;
 import com.kunlunsoft.conn.ZkConnectMgmt;
 import com.kunlunsoft.dialog.ConfigDialog;
@@ -79,7 +80,7 @@ public class ZkEditorApp extends GenericFrame {
     private JCheckBox onlineCheckBox;
     private AssistPopupTextField searchTextField;
     private JTable zkNodeTable;
-    static final String[] columnNames = {"参数名", "参数值(字符串)", "删除", "编辑", "进入"};
+    static final String[] columnNames = {"序号", "参数名", "参数值(字符串)", "删除", "编辑", "进入"};
     private Map<String, String> resultMap;
     private JLabel statusLabel;
     private ConfigInfo configInfo = new ConfigInfo();
@@ -881,13 +882,16 @@ public class ZkEditorApp extends GenericFrame {
     public void rendTable() {
         TableColumnModel columnModel = this.zkNodeTable.getColumnModel();
 //        int width=120;
-//        TableColumn tableColumn0=columnModel.getColumn(0);
+        TableColumn tableColumn0 = columnModel.getColumn(0);
+        tableColumn0.setCellRenderer(new MyButtonRender());
+        tableColumn0.setCellEditor(new MyButtonEditor());
 //        tableColumn0.setWidth(width);
 //        tableColumn0.setMinWidth(width);
 //        TableColumn tableColumn1=columnModel.getColumn(1);
 //        tableColumn1.setWidth(width);
 //        tableColumn1.setMinWidth(width);
-        TableColumn tableColumn2 = columnModel.getColumn(2);
+        int index = 3;
+        TableColumn tableColumn2 = columnModel.getColumn(index);
         int btnWidth = 60;
         tableColumn2.setMinWidth(btnWidth);
         tableColumn2.setMaxWidth(btnWidth);
@@ -896,16 +900,16 @@ public class ZkEditorApp extends GenericFrame {
         tableColumn2
                 .setCellRenderer(new MyButtonRender());
 
-
-        TableColumn tableColumn3 = columnModel.getColumn(3);
+        index++;
+        TableColumn tableColumn3 = columnModel.getColumn(index);
         tableColumn3.setMinWidth(btnWidth);
         tableColumn3.setMaxWidth(btnWidth);
         tableColumn3.setCellEditor(new MyButtonEditor());
         tableColumn3
                 .setCellRenderer(new MyButtonRender());
 
-
-        TableColumn tableColumn4 = columnModel.getColumn(4);
+        index++;
+        TableColumn tableColumn4 = columnModel.getColumn(index);
         tableColumn4.setMinWidth(80);
         tableColumn4.setMaxWidth(100);
         tableColumn4.setCellEditor(new MyButtonEditor());
@@ -919,11 +923,17 @@ public class ZkEditorApp extends GenericFrame {
         Set<String> keys = map.keySet();
         Object[][] datas = new Object[keys.size()][];
         int index = 0;
+//        int i=0;
         for (String key : keys) {
-            Object[] objs = new Object[5];
-            objs[0] = key;
+            Object[] objs = new Object[6];
+            MyPassCheckBox isSelCheckbox = new MyPassCheckBox(
+                    String.valueOf(index + 1));
+            isSelCheckbox.setOpaque(false);// 使复选框透明
+            objs[0] = isSelCheckbox;
+
+            objs[1] = key;
             String nodeVal = map.get(key);
-            objs[1] = "\"" + nodeVal + "\"";
+            objs[2] = "\"" + nodeVal + "\"";
             addOperateBtn(key, objs, nodeVal);
 
             datas[index] = objs;
@@ -933,7 +943,8 @@ public class ZkEditorApp extends GenericFrame {
     }
 
     public void addOperateBtn(String key, Object[] objs, String nodeVal) {
-        objs[2] = new DelButton(key) {//删除,有确认提示
+        int index = 3;
+        objs[index] = new DelButton(key) {//删除,有确认提示
             @Override
             public void callback() {
                 super.callback();
@@ -941,7 +952,8 @@ public class ZkEditorApp extends GenericFrame {
             }
         }.setZkConnect(zkConnectMgmt).setRootPath(getRootPath());
 
-        objs[3] = new EditButton(key) {//编辑
+        index++;
+        objs[index] = new EditButton(key) {//编辑
             @Override
             public void action(String nodeKey) {
                 keyTextField.setText(getNodeKey(), true);
@@ -949,7 +961,8 @@ public class ZkEditorApp extends GenericFrame {
             }
         }.setNodeValue(nodeVal);
 
-        objs[4] = new EnterDirectoryBtn(key) {//进入目录,进入文件夹
+        index++;
+        objs[index] = new EnterDirectoryBtn(key) {//进入目录,进入文件夹
             @Override
             public void action(final String nodeKey) {
 //                    super.callback();

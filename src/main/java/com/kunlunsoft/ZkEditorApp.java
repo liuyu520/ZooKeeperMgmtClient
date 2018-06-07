@@ -527,18 +527,21 @@ public class ZkEditorApp extends GenericFrame {
         ConfigInfo configInfo = this.configInfo;
         List<ZkEnvironment> environments = configInfo.getEnvironments();
         List<CheckboxParam> checkboxParamList = new ArrayList<>();
-        int size = environments.size();
-        for (int i = 0; i < size; i++) {
-            ZkEnvironment zkEnvironment = environments.get(i);
-            if (!ValueWidget.isNullOrEmpty(zkEnvironment.getIp())
-                    && (!ValueWidget.isNullOrEmpty(zkEnvironment.getZkRootPath()))) {
-                CheckboxParam checkboxParam = new CheckboxParam();
-                checkboxParam.setId(i);
-                checkboxParam.setZkEnvironment(zkEnvironment);
-                checkboxParam.setDisplayLabel(indexCheckboxDisp.get(i));
-                checkboxParamList.add(checkboxParam);
+        if (!ValueWidget.isNullOrEmpty(environments)) {
+            int size = environments.size();
+            for (int i = 0; i < size; i++) {
+                ZkEnvironment zkEnvironment = environments.get(i);
+                if (!ValueWidget.isNullOrEmpty(zkEnvironment.getIp())
+                        && (!ValueWidget.isNullOrEmpty(zkEnvironment.getZkRootPath()))) {
+                    CheckboxParam checkboxParam = new CheckboxParam();
+                    checkboxParam.setId(i);
+                    checkboxParam.setZkEnvironment(zkEnvironment);
+                    checkboxParam.setDisplayLabel(indexCheckboxDisp.get(i));
+                    checkboxParamList.add(checkboxParam);
+                }
             }
         }
+
         return checkboxParamList;
     }
     /***

@@ -9,8 +9,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ConnMgmt {
+    /**
+     * redis 默认端口号
+     */
     public static final int REDIS_PORT = 6379;
     private Map<String, RedisConnItem> redisParamMap = new HashMap<>();
+    /***
+     * 当前的redis 连接
+     */
     private Jedis currentConn;
 
     public Map<String, RedisConnItem> getRedisParamMap() {
@@ -30,6 +36,8 @@ public class ConnMgmt {
         if (null == redisParam1
                 || null == redisParam1.getJedis()) {
             Jedis jedis = new Jedis(redisParam.getHost(), redisParam.getPort());
+            String msg = "连接redis...ip:" + redisParam.getHost();
+            System.out.println(msg);
             setCurrentConn(jedis);
             RedisConnItem redisConnItem = new RedisConnItem();
 //            BeanUtils.copyProperties(redisParam, redisConnItem);
@@ -44,6 +52,9 @@ public class ConnMgmt {
             redisParamMap.put(uniqueId, redisConnItem);
             return jedis;
         }
+        String msg = "不用重新连接";
+        System.out.println(msg);
+        setCurrentConn(redisParam1.getJedis());
         return redisParam1.getJedis();
     }
 

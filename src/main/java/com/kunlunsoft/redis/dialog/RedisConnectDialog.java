@@ -2,6 +2,7 @@ package com.kunlunsoft.redis.dialog;
 
 import com.kunlunsoft.redis.util.ConnMgmt;
 import com.string.widget.util.ValueWidget;
+import com.swing.component.AssistPopupTextField;
 import com.swing.dialog.DialogUtil;
 import com.swing.dialog.GenericDialog;
 import com.swing.dialog.toast.ToastMessage;
@@ -15,9 +16,9 @@ public class RedisConnectDialog extends GenericDialog {
     private JPanel contentPane;
     private JButton buttonOK;
     private JButton buttonCancel;
-    private JTextField ipTextField1;
-    private JTextField portTextField1;
-    private JTextField textField1;
+    private AssistPopupTextField ipTextField1;
+    private AssistPopupTextField portTextField1;
+    private AssistPopupTextField passwordTextField1;
     private ConnMgmt connMgmt;
 
     public static RedisConnectDialog show(ConnMgmt connMgmt) {
@@ -31,6 +32,10 @@ public class RedisConnectDialog extends GenericDialog {
     private void initUI() {
         this.ipTextField1.setText("59.110.236.186");
         this.portTextField1.setText(String.valueOf(ConnMgmt.REDIS_PORT));
+        this.portTextField1.placeHolder("redis 端口号");
+
+        String placeHolder = "可为空";
+        this.passwordTextField1.placeHolder(placeHolder).setToolTipText(placeHolder);
         setTitle("连接redis 服务");
     }
     public RedisConnectDialog() {

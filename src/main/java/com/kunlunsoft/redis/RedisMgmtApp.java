@@ -50,7 +50,10 @@ public class RedisMgmtApp {
                 String id = id2TextField1.getText2();
                 String key = key2TextField2.getText2();
                 String result = null;
-                Jedis jedis = connMgmt.getCurrentConn();
+                Jedis jedis = checkJedisIsConnected();
+                if (jedis == null) {
+                    return;
+                }
                 if (ValueWidget.isNullOrEmpty(key)) {
                     result = jedis.get(id);
                 } else {
@@ -73,14 +76,30 @@ public class RedisMgmtApp {
                 String id = idTextField1.getText2();
                 String key = keyTextField1.getText2();
                 String val = valTextArea1.getText2();
+                Jedis jedis = checkJedisIsConnected();
+                if (jedis == null) {
+                    return;
+                }
                 if (ValueWidget.isNullOrEmpty(key)) {
-                    connMgmt.getCurrentConn().set(id, val);
+                    jedis.set(id, val);
                 } else {
-                    connMgmt.getCurrentConn().hset(id, key, val);
+                    jedis.hset(id, key, val);
                 }
                 ToastMessage.toast("保存成功", 2000);
             }
         });
+
+        //4.
+
+    }
+
+    public Jedis checkJedisIsConnected() {
+        Jedis jedis = connMgmt.getCurrentConn();
+        if (null == jedis) {
+            ToastMessage.toast("请先连接redis ", 2000, Color.RED);
+            return null;
+        }
+        return jedis;
     }
 
 
@@ -115,6 +134,7 @@ public class RedisMgmtApp {
                 setMenu();
             }
         };
+        genericFrame.setTitle("redis 管理");
         genericFrame.launchFrame();
     }
 

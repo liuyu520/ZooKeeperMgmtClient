@@ -26,6 +26,7 @@ public class RedisMgmtApp {
     private AssistPopupTextField key2TextField2;
     private AssistPopupTextArea resultTextArea1;
     private JPanel rootPane;
+    private AssistPopupTextField secondTextField1;
     private ConnMgmt connMgmt;
 
     /***
@@ -74,24 +75,45 @@ public class RedisMgmtApp {
         saveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String id = idTextField1.getText2();
-                String key = keyTextField1.getText2();
-                String val = valTextArea1.getText2();
-                Jedis jedis = checkJedisIsConnected();
-                if (jedis == null) {
-                    return;
-                }
-                if (ValueWidget.isNullOrEmpty(key)) {
-                    jedis.set(id, val);
-                } else {
-                    jedis.hset(id, key, val);
-                }
-                ToastMessage.toast("保存成功", 2000);
+                saveAction();
             }
         });
 
         //4.
 
+    }
+
+    public void saveAction() {
+        String id = idTextField1.getText2();
+        String key = keyTextField1.getText2();
+        String val = valTextArea1.getText2();
+        String secondStr = secondTextField1.getText();
+        Jedis jedis = checkJedisIsConnected();
+        if (jedis == null) {
+            return;
+        }
+        Integer second = null;
+        if (!ValueWidget.isNullOrEmpty(secondStr)) {
+            if (ValueWidget.isNumeric(secondStr)) {
+                second = Integer.parseInt(secondStr);
+            } else {
+                ToastMessage.toast("有效期必须是数字,单位:秒 ", 2000, Color.RED);
+                return;
+            }
+        }
+        if (ValueWidget.isNullOrEmpty(key)) {
+            jedis.set(id, val);
+
+        } else {
+            jedis.hset(id, key, val);
+
+        }
+        //设置有效期
+        if (null != second) {
+            jedis.expire(id, second);
+        }
+
+        ToastMessage.toast("保存成功", 2000);
     }
 
     public Jedis checkJedisIsConnected() {
@@ -110,7 +132,7 @@ public class RedisMgmtApp {
 
     public static void main(String[] args) {
         DialogUtil.lookAndFeel2();
-        RedisMgmtApp redisMgmtApp = new RedisMgmtApp();
+        final RedisMgmtApp redisMgmtApp = new RedisMgmtApp();
         GenericFrame genericFrame = new GenericFrame() {
             public void setMenu() {
                 JMenuBar menuBar = new JMenuBar();
@@ -135,6 +157,7 @@ public class RedisMgmtApp {
 //                fullScreen();
 //                setLoc(700, 600);
                 setMenu();
+                setGlobalShortCuts();//设置全局快捷键
             }
 
             @Override
@@ -159,6 +182,7 @@ public class RedisMgmtApp {
             protected void saveConfig() {
                 super.saveConfig();
                 System.out.println("保存 :");
+                redisMgmtApp.saveAction();
             }
         };
         genericFrame.setTitle("redis 管理");
@@ -199,7 +223,7 @@ public class RedisMgmtApp {
         rootPane.add(scrollPane1, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         scrollPane1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16716762)), "编辑"));
         final JPanel panel1 = new JPanel();
-        panel1.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(2, 3, new Insets(0, 0, 0, 0), -1, -1));
+        panel1.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(3, 3, new Insets(0, 0, 0, 0), -1, -1));
         scrollPane1.setViewportView(panel1);
         final JLabel label1 = new JLabel();
         label1.setText("key");
@@ -210,21 +234,26 @@ public class RedisMgmtApp {
         panel1.add(keyTextField1, new com.intellij.uiDesigner.core.GridConstraints(0, 2, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(150, -1), null, 0, false));
         final JLabel label2 = new JLabel();
         label2.setText("value");
-        panel1.add(label2, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel1.add(label2, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JScrollPane scrollPane2 = new JScrollPane();
-        panel1.add(scrollPane2, new com.intellij.uiDesigner.core.GridConstraints(1, 1, 1, 2, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        panel1.add(scrollPane2, new com.intellij.uiDesigner.core.GridConstraints(2, 1, 1, 2, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         valTextArea1 = new AssistPopupTextArea();
         valTextArea1.setText("");
         scrollPane2.setViewportView(valTextArea1);
+        final JLabel label3 = new JLabel();
+        label3.setText("有效期(秒)");
+        panel1.add(label3, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        secondTextField1 = new JTextField();
+        panel1.add(secondTextField1, new com.intellij.uiDesigner.core.GridConstraints(1, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         final JScrollPane scrollPane3 = new JScrollPane();
         rootPane.add(scrollPane3, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         scrollPane3.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-65536)), "查询"));
         final JPanel panel2 = new JPanel();
         panel2.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(2, 3, new Insets(0, 0, 0, 0), -1, -1));
         scrollPane3.setViewportView(panel2);
-        final JLabel label3 = new JLabel();
-        label3.setText("key");
-        panel2.add(label3, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label4 = new JLabel();
+        label4.setText("key");
+        panel2.add(label4, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         id2TextField1 = new AssistPopupTextField();
         panel2.add(id2TextField1, new com.intellij.uiDesigner.core.GridConstraints(0, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         key2TextField2 = new AssistPopupTextField();

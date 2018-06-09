@@ -92,7 +92,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.kunlunsoft.ZkEditorApp</mainClass>
+                            <mainClass>com.kunlunsoft.redis.RedisMgmtApp</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

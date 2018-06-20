@@ -516,8 +516,19 @@ public class ZkEditorApp extends GenericFrame {
         //
         ZkConnect.getEventBus().register(this);
         timingSave();
+        //程序启动完成,就查询redis
+        autoQuery();
     }
 
+
+    private void autoQuery() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                searchAction(true);
+            }
+        }).start();
+    }
     public List<CheckboxParam> buildCheckbox() {
         Map<Integer, String> indexCheckboxDisp = new HashMap<>();
         indexCheckboxDisp.put(0, "测试");

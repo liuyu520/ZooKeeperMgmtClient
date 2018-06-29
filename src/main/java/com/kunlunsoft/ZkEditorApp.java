@@ -495,6 +495,8 @@ public class ZkEditorApp extends GenericFrame {
                     try {
                         connectServer(false);
                         refreshCurrentPath();//设置主面板的当前路径
+                        //程序启动完成,就查询redis
+                        autoQuery();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -516,8 +518,6 @@ public class ZkEditorApp extends GenericFrame {
         //
         ZkConnect.getEventBus().register(this);
         timingSave();
-        //程序启动完成,就查询redis
-        autoQuery();
     }
 
 

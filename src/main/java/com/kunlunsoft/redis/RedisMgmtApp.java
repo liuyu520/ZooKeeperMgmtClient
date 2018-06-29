@@ -87,6 +87,9 @@ public class RedisMgmtApp {
 
     public void saveAction() {
         String id = idTextField1.getText2();
+        if (!DialogUtil.verifyTFEmpty(idTextField1, "redis id")) {
+            return;
+        }
         String key = keyTextField1.getText2();
         String val = valTextArea1.getText2();
         String secondStr = secondTextField1.getText2();

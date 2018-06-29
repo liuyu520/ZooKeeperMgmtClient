@@ -113,10 +113,10 @@ public class RedisConnectDialog extends GenericDialog {
             ToastMessage.toast("连接失败", 2000, Color.RED);
         } else {
             ToastMessage.toast("连接成功", 2000);
-            redisParam = new RedisParam();
+           /* redisParam = new RedisParam();
             redisParam.setPassword(password2);
             redisParam.setHost(ip);
-            redisParam.setPort(port);
+            redisParam.setPort(port);*/
             dispose();
         }
     }

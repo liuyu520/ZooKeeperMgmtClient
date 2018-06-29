@@ -1,5 +1,6 @@
 package com.kunlunsoft.redis.dialog;
 
+import com.kunlunsoft.redis.dto.RedisParam;
 import com.kunlunsoft.redis.util.ConnMgmt;
 import com.string.widget.util.ValueWidget;
 import com.swing.component.AssistPopupTextField;
@@ -20,10 +21,11 @@ public class RedisConnectDialog extends GenericDialog {
     private AssistPopupTextField portTextField1;
     private AssistPopupTextField passwordTextField1;
     private ConnMgmt connMgmt;
+    private RedisParam redisParam;
 
     public static RedisConnectDialog show(ConnMgmt connMgmt) {
-        RedisConnectDialog redisConnectDialog = new RedisConnectDialog();
-        redisConnectDialog.setConnMgmt(connMgmt);
+        RedisConnectDialog redisConnectDialog = new RedisConnectDialog(connMgmt);
+//        redisConnectDialog.setConnMgmt(connMgmt);
         redisConnectDialog.setLoc(500, 130);
         redisConnectDialog.setVisible(true);
         return redisConnectDialog;
@@ -37,10 +39,21 @@ public class RedisConnectDialog extends GenericDialog {
         String placeHolder = "可为空";
         this.passwordTextField1.placeHolder(placeHolder).setToolTipText(placeHolder);
         this.passwordTextField1.setEditable(false);
+
+        if (null != this.redisParam) {
+            this.ipTextField1.setText(this.redisParam.getHost());
+            this.passwordTextField1.setText(this.redisParam.getPassword());
+            this.portTextField1.setText(String.valueOf(this.redisParam.getPort()));
+        }
+
         setTitle("连接redis 服务");
     }
 
-    public RedisConnectDialog() {
+    public RedisConnectDialog(ConnMgmt connMgmt) {
+        if (null != connMgmt.getCurrentRedisParam()) {
+            this.redisParam = connMgmt.getCurrentRedisParam();
+        }
+        setConnMgmt(connMgmt);
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
@@ -94,11 +107,16 @@ public class RedisConnectDialog extends GenericDialog {
         } else {
             port = Integer.parseInt(portStr);
         }
-        Jedis jedis = connMgmt.connect(ip, port);
+        String password2 = passwordTextField1.getText2();
+        Jedis jedis = connMgmt.connect(ip, password2, port);
         if (null == jedis) {
             ToastMessage.toast("连接失败", 2000, Color.RED);
         } else {
             ToastMessage.toast("连接成功", 2000);
+            redisParam = new RedisParam();
+            redisParam.setPassword(password2);
+            redisParam.setHost(ip);
+            redisParam.setPort(port);
             dispose();
         }
     }
@@ -108,7 +126,7 @@ public class RedisConnectDialog extends GenericDialog {
     }
 
     public static void main(String[] args) {
-        RedisConnectDialog dialog = new RedisConnectDialog();
+        RedisConnectDialog dialog = new RedisConnectDialog(null);
         dialog.pack();
         dialog.setVisible(true);
         System.exit(0);

@@ -2,6 +2,7 @@ package com.kunlunsoft.redis.util;
 
 import com.kunlunsoft.redis.dto.RedisConnItem;
 import com.kunlunsoft.redis.dto.RedisParam;
+import com.string.widget.util.ValueWidget;
 import redis.clients.jedis.Jedis;
 
 import java.lang.reflect.InvocationTargetException;
@@ -18,6 +19,7 @@ public class ConnMgmt {
      * 当前的redis 连接
      */
     private Jedis currentConn;
+    private RedisParam currentRedisParam;
 
     public Map<String, RedisConnItem> getRedisParamMap() {
         return redisParamMap;
@@ -27,15 +29,23 @@ public class ConnMgmt {
         this.redisParamMap = redisParamMap;
     }
 
-    public Jedis connect(String host, final int port) {
+    public Jedis connect(String host, String password, final int port) {
         RedisParam redisParam = new RedisParam();
         redisParam.setHost(host)
-                .setPort(port);
+                .setPort(port)
+                .setPassword(password);
         String uniqueId = redisParam.getUniqueId();
         RedisConnItem redisParam1 = redisParamMap.get(uniqueId);
         if (null == redisParam1
                 || null == redisParam1.getJedis()) {
-            Jedis jedis = new Jedis(redisParam.getHost(), redisParam.getPort());
+            Jedis jedis = jedis = new Jedis(redisParam.getHost(), redisParam.getPort());
+            if (ValueWidget.isNullOrEmpty(password)) {
+
+//                jedis = new Jedis(redisParam.getHost(), redisParam.getPort());
+            } else {
+//                jedis = new Jedis(redisParam.getHost(), redisParam.getPassword(), redisParam.getPort());
+                jedis.auth(redisParam.getPassword());
+            }
             String msg = "连接redis...ip:" + redisParam.getHost();
             System.out.println(msg);
             setCurrentConn(jedis);
@@ -50,6 +60,7 @@ public class ConnMgmt {
             }
             redisConnItem.setJedis(jedis);
             redisParamMap.put(uniqueId, redisConnItem);
+            currentRedisParam = redisParam;
             return jedis;
         }
         String msg = "不用重新连接";
@@ -64,5 +75,13 @@ public class ConnMgmt {
 
     public void setCurrentConn(Jedis currentConn) {
         this.currentConn = currentConn;
+    }
+
+    public RedisParam getCurrentRedisParam() {
+        return currentRedisParam;
+    }
+
+    public void setCurrentRedisParam(RedisParam currentRedisParam) {
+        this.currentRedisParam = currentRedisParam;
     }
 }

@@ -41,6 +41,8 @@ public class RedisMgmtApp {
         this.id2TextField1.placeHolder(placeHolder).setToolTipText(placeHolder);
         this.key2TextField2.placeHolder(placeHolder).setToolTipText(placeHolder);
 
+        this.secondTextField1.setEditable(false);
+
         //2. redis 连接
         connMgmt = new ConnMgmt();
 

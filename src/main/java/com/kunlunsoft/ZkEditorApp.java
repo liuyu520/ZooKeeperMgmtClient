@@ -1,6 +1,8 @@
 package com.kunlunsoft;
 
 import com.cmd.dos.hw.util.CMDUtil;
+import com.common.dict.Constant2;
+import com.common.thread.ThreadPoolUtil;
 import com.common.util.SystemHWUtil;
 import com.common.util.WindowUtil;
 import com.google.common.eventbus.Subscribe;
@@ -109,6 +111,7 @@ public class ZkEditorApp extends GenericFrame {
     public static final String cacheFilePath = System.getProperty("user.home") + File.separator + "zk/cache.json";
     private ArrayList<MyPassCheckBox> checkBoxes = new ArrayList<MyPassCheckBox>(
             100);
+
     /**
      * Launch the application.
      */
@@ -486,10 +489,20 @@ public class ZkEditorApp extends GenericFrame {
         panel_6.add(backBtn);
 
 
+        JButton backToRootBtn = new JButton("回到根目录");
+        backToRootBtn.addActionListener(e -> {
+            configInfo.getCurrentEnvironment().setZkRootPath(Constant2.SLASH);
+            refreshCurrentPath();
+            ThreadPoolUtil.execute(() -> {
+                searchAction(true);
+            });
+        });
+        panel_6.add(backToRootBtn);
+
         setMenuBar2();
         if (readConfigSuccess) {
             //连接zk服务器
-            new Thread(new Runnable() {
+            ThreadPoolUtil.execute(new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -501,7 +514,7 @@ public class ZkEditorApp extends GenericFrame {
                         e.printStackTrace();
                     }
                 }
-            }).start();
+            });
         }
 
         try {
@@ -522,13 +535,14 @@ public class ZkEditorApp extends GenericFrame {
 
 
     private void autoQuery() {
-        new Thread(new Runnable() {
+        ThreadPoolUtil.execute(new Runnable() {
             @Override
             public void run() {
                 searchAction(true);
             }
-        }).start();
+        });
     }
+
     public List<CheckboxParam> buildCheckbox() {
         Map<Integer, String> indexCheckboxDisp = new HashMap<>();
         indexCheckboxDisp.put(0, "测试");
@@ -555,6 +569,7 @@ public class ZkEditorApp extends GenericFrame {
 
         return checkboxParamList;
     }
+
     /***
      * 表格绑定鼠标事件
      * @param zkNodeTable
@@ -624,12 +639,9 @@ public class ZkEditorApp extends GenericFrame {
         menuDto.put(menuItemLabel, callback2);
 
         menuItemLabel = "删除";
-        callback2 = new MenuCallback2() {
-            @Override
-            public void actionPerformed(ActionEvent event, TableInfo tableInfo) {
-                JButton delBtn = (JButton) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 3);
-                delBtn.doClick();
-            }
+        callback2 = (ActionEvent event, TableInfo tableInfo) -> {
+            JButton delBtn = (JButton) tableInfo.getjTable().getValueAt(tableInfo.getSelectedRow(), 3);
+            delBtn.doClick();
         };
         menuDto.put(menuItemLabel, callback2);
 
@@ -705,12 +717,14 @@ public class ZkEditorApp extends GenericFrame {
             }
         }, 1000 * 60 * 5/*5分钟 */, 1000 * 60 * 5/*5分钟 */);
     }
+
     @Subscribe
     public void handleConnSucces(ZkConnSuccessEvent zkConnSuccessEvent) {
         String msg = "连接zk 成功.";
         System.out.println("msg :" + msg);
         ToastMessage.toast("连接成功", 2000);
     }
+
     @Subscribe
     public void handleSaveConfig(SaveConfigEvent saveConfigEvent) {
         System.out.println("保存配置文件2222 :");
@@ -812,6 +826,7 @@ public class ZkEditorApp extends GenericFrame {
             //3. 不一定是真正的搜索
             resultMap = ZkConnect.search(path, zkConnItem.getZk(), new Callback2() {
                 private long lastTime = 0;
+
                 @Override
                 public String callback(String input, Object encoding) {
                     //节流,throttle
@@ -823,7 +838,10 @@ public class ZkEditorApp extends GenericFrame {
                     }
                     lastTime = System.currentTimeMillis();
                     //持久化缓存
-                    saveCache2LocalFile((Map<String, Map<String, String>>) encoding);
+                    ThreadPoolUtil.execute(() -> {
+                        saveCache2LocalFile((Map<String, Map<String, String>>) encoding);
+                    });
+
                     return null;
                 }
 
@@ -912,8 +930,9 @@ public class ZkEditorApp extends GenericFrame {
             }
         }
         FileUtils.writeStrToFile(file, HWJacksonUtils.getJsonP(searchResultCacheMap), true);
-        ToastMessage.toast("保存缓存文件成功", 2000);
+        ToastMessage.toast("保存缓存文件成功", 1000);
     }
+
     public Object[][] accurateQuery(String searchKeyWord) {
         Object[][] datas;
         String searchVal = resultMap.get(searchKeyWord);
@@ -1272,6 +1291,7 @@ public class ZkEditorApp extends GenericFrame {
         };
         genericDialog.launchFrame(title);
     }
+
     /***
      * 重新连接<br />
      * 调用时机:<br />

@@ -74,11 +74,8 @@ public class RedisMgmtApp {
         key2TextField2.addActionListener(actionListener);
 
         //redis save
-        saveButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                saveAction();
-            }
+        saveButton.addActionListener((ActionEvent e) -> {
+            saveAction();
         });
 
         //4.

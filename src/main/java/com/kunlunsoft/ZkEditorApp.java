@@ -811,8 +811,17 @@ public class ZkEditorApp extends GenericFrame {
         try {
             //3. 不一定是真正的搜索
             resultMap = ZkConnect.search(path, zkConnItem.getZk(), new Callback2() {
+                private long lastTime = 0;
                 @Override
                 public String callback(String input, Object encoding) {
+                    //节流,throttle
+                    long delta = System.currentTimeMillis() - lastTime;
+                    if (lastTime != 0
+                            && delta < 10000) {//10 second
+                        lastTime = System.currentTimeMillis();
+                        return null;
+                    }
+                    lastTime = System.currentTimeMillis();
                     //持久化缓存
                     saveCache2LocalFile((Map<String, Map<String, String>>) encoding);
                     return null;

@@ -1249,6 +1249,25 @@ public class ZkEditorApp extends GenericFrame {
         });
         fileM.add(configItem);
         fileM.add(viewConfigItem);
+
+        JMenuItem exportCacheItem = new JMenuItem("导出缓存");
+        exportCacheItem.addActionListener((e) -> {
+            Map<String, Map<String, String>> searchResultCacheMap = ZkConnect.getSearchResultCacheMap();
+            StringBuilder stringBuilder = new StringBuilder();
+            searchResultCacheMap.forEach((k1, values) -> {
+                stringBuilder.append(k1).append(":--------------").append(SystemHWUtil.CRLF);
+                values.forEach((key, value) -> {
+                    stringBuilder.append(key).append("=").append(value).append(SystemHWUtil.CRLF);
+                });
+                stringBuilder.append("------------- end -------------").append(SystemHWUtil.CRLF).append(SystemHWUtil.CRLF);
+            });
+            System.out.println(" :");
+            WindowUtil.setSysClipboardText(stringBuilder.toString());
+            ToastMessage.toastRight("已复制到剪切板", 1000);
+        });
+        fileM.add(exportCacheItem);
+
+
         menuBar.add(fileM);
 
         MenuBarListener menuBarListener = new MenuBarListener(configInfo);

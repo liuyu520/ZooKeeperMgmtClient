@@ -34,6 +34,10 @@ public class ZkConnect {
         return data;
     }
 
+    public static Map<String, Map<String, String>> getSearchResultCacheMap() {
+        return searchResultCacheMap;
+    }
+
     /***
      * 清空缓存
      */

@@ -1,22 +1,35 @@
 package com.kunlunsoft.redis;
 
+import com.cmd.dos.hw.util.CMDUtil;
 import com.common.util.SystemHWUtil;
+import com.io.hw.file.util.FileUtils;
+import com.io.hw.json.HWJacksonUtils;
+import com.kunlunsoft.conn.ZkConnectMgmt;
+import com.kunlunsoft.dto.ConfigInfo;
+import com.kunlunsoft.dto.RedisKeyValDto;
 import com.kunlunsoft.redis.dialog.RedisConnectDialog;
 import com.kunlunsoft.redis.dto.RedisConnItem;
 import com.kunlunsoft.redis.util.ConnMgmt;
+import com.kunlunsoft.util.ZkConnect;
 import com.string.widget.util.ValueWidget;
 import com.swing.component.AssistPopupTextArea;
 import com.swing.component.AssistPopupTextField;
 import com.swing.dialog.DialogUtil;
 import com.swing.dialog.GenericFrame;
 import com.swing.dialog.toast.ToastMessage;
+import com.swing.messagebox.GUIUtil23;
 import redis.clients.jedis.Jedis;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 
+/***
+ * redis管理
+ */
 public class RedisMgmtApp {
     private AssistPopupTextField idTextField1;
     private AssistPopupTextField keyTextField1;
@@ -28,6 +41,18 @@ public class RedisMgmtApp {
     private JPanel rootPane;
     private AssistPopupTextField secondTextField1;
     private ConnMgmt connMgmt;
+    /***
+     * 配置
+     */
+    private RedisKeyValDto redisKeyValDto;
+    /***
+     * 配置文件路径
+     */
+    public static final String configFilePath = System.getProperty("user.home") + File.separator + ".redis_key2.properties";
+    /***
+     * 配置文件
+     */
+    private File configFile;
 
     /***
      * 初始化界面
@@ -67,6 +92,12 @@ public class RedisMgmtApp {
 
                 System.out.println("result :" + result);
                 resultTextArea1.setText(result);
+
+                //save
+                RedisMgmtApp.this.redisKeyValDto = new RedisKeyValDto();
+                redisKeyValDto.setQueryId(id);
+                redisKeyValDto.setQueryKey(key);
+                saveConfig();
             }
         };
 
@@ -160,6 +191,12 @@ public class RedisMgmtApp {
 //                setLoc(700, 600);
                 setMenu();
                 setGlobalShortCuts();//设置全局快捷键
+
+                try {
+                    redisMgmtApp.readConfig();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -191,6 +228,61 @@ public class RedisMgmtApp {
         genericFrame.launchFrame();
         genericFrame.setLoc(700, 600);
     }
+
+    /***
+     * 保存配置文件
+     */
+    public void saveConfig() {
+        System.out.println("saveConfig :");
+        configFile = new File(configFilePath);
+        if (!configFile.exists()) {
+            try {
+                SystemHWUtil.createEmptyFile(configFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+                GUIUtil23.errorDialog(e);
+            }
+        }
+        CMDUtil.show(configFilePath);//因为隐藏文件是只读的
+        if (null != configFile) {
+            //处理
+            System.out.println("保存文件:" + configFilePath);
+            String content = HWJacksonUtils.getJsonP(this.redisKeyValDto);
+            if (ValueWidget.isNullOrEmpty(content)
+                    || content.length() < 20) {
+                String msg = "要保存的内容太小,不保存";
+                System.out.println("msg :" + msg);
+                return;
+            }
+            FileUtils.writeToFile(configFile, content, SystemHWUtil.CHARSET_UTF);
+            CMDUtil.hide(configFilePath);
+        }
+    }
+
+    /***
+     * 读取配置文件
+     * @throws IOException
+     */
+    private boolean readConfig() throws IOException {
+        configFile = new File(configFilePath);
+
+        if (!configFile.exists()) {
+            return false;
+        }
+        String resumeInput = ZkConnect.getConfigContent(configFile);
+        if (ValueWidget.isNullOrEmpty(resumeInput)) {
+            GUIUtil23.warningDialog("请先去进行配置");
+            return false;
+        }
+        this.redisKeyValDto = HWJacksonUtils.deSerialize(resumeInput, RedisKeyValDto.class);
+        if (null == this.redisKeyValDto) {
+            return false;
+        }
+        id2TextField1.setText(this.redisKeyValDto.getQueryId(), true);
+        key2TextField2.setText(this.redisKeyValDto.getQueryKey(), true);
+        return true;
+    }
+
 
     public void showConnectDialog() {
         RedisConnectDialog.show(connMgmt);

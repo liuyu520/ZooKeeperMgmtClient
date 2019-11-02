@@ -20,6 +20,10 @@ public class RedisConnectDialog extends GenericDialog {
     private AssistPopupTextField ipTextField1;
     private AssistPopupTextField portTextField1;
     private AssistPopupTextField passwordTextField1;
+    /**
+     * 强制重连
+     */
+    private JButton reconnectButton;
     private ConnMgmt connMgmt;
     private RedisParam redisParam;
 
@@ -61,7 +65,7 @@ public class RedisConnectDialog extends GenericDialog {
         buttonOK.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                onOK();
+                onOK(false);
             }
         });
 
@@ -89,9 +93,20 @@ public class RedisConnectDialog extends GenericDialog {
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         initUI();
         DialogUtil.escape2CloseDialog(this);
+        reconnectButton.addActionListener(new ActionListener() {
+            /**
+             * Invoked when an action occurs.
+             *
+             * @param e
+             */
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                onOK(true);
+            }
+        });
     }
 
-    private void onOK() {
+    private void onOK(boolean force) {
         // 1. 校验
         if (!DialogUtil.verifyTFEmpty(ipTextField1, "redis 服务ip")) {
             return;
@@ -108,7 +123,7 @@ public class RedisConnectDialog extends GenericDialog {
             port = Integer.parseInt(portStr);
         }
         String password2 = passwordTextField1.getText2();
-        Jedis jedis = connMgmt.connect(ip, password2, port);
+        Jedis jedis = connMgmt.connect(ip, password2, port,force);
         if (null == jedis) {
             ToastMessage.toast("连接失败", 2000, Color.RED);
         } else {

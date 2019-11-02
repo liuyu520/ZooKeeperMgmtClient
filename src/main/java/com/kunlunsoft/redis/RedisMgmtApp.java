@@ -4,6 +4,7 @@ import com.cmd.dos.hw.util.CMDUtil;
 import com.common.util.SystemHWUtil;
 import com.io.hw.file.util.FileUtils;
 import com.io.hw.json.HWJacksonUtils;
+import com.kunlunsoft.dto.ConfigGlobalDTO;
 import com.kunlunsoft.dto.RedisKeyValDto;
 import com.kunlunsoft.redis.dialog.RedisConnectDialog;
 import com.kunlunsoft.redis.dto.RedisConnItem;
@@ -269,7 +270,10 @@ public class RedisMgmtApp {
             this.redisKeyValDto.setSaveKey(keyTextField1.getText2());
             this.redisKeyValDto.setSaveValue(valTextArea1.getText2());
 
-            String content = HWJacksonUtils.getJsonP(this.redisKeyValDto);
+            ConfigGlobalDTO configGlobalDTO = new ConfigGlobalDTO();
+            configGlobalDTO.setRedisKeyValDto(this.redisKeyValDto);
+            configGlobalDTO.setRedisParam(connMgmt.getCurrentRedisParam());
+            String content = HWJacksonUtils.getJsonP(configGlobalDTO);
             if (ValueWidget.isNullOrEmpty(content)
                     || content.length() < 20) {
                 String msg = "要保存的内容太小,不保存";
@@ -296,7 +300,12 @@ public class RedisMgmtApp {
             GUIUtil23.warningDialog("请先去进行配置");
             return false;
         }
-        this.redisKeyValDto = HWJacksonUtils.deSerialize(resumeInput, RedisKeyValDto.class);
+        ConfigGlobalDTO configGlobalDTO = HWJacksonUtils.deSerialize(resumeInput, ConfigGlobalDTO.class);
+        this.redisKeyValDto = configGlobalDTO.getRedisKeyValDto();
+        if (configGlobalDTO.getRedisParam() != null) {
+            this.connMgmt.setCurrentRedisParam(configGlobalDTO.getRedisParam());
+        }
+
         if (null == this.redisKeyValDto) {
             return false;
         }

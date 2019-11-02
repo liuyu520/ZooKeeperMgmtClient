@@ -30,19 +30,20 @@ public class ConnMgmt {
         this.redisParamMap = redisParamMap;
     }
 
-    public Jedis connect(String host, String password, final int port) {
+    public Jedis connect(String host, String password, final int port, boolean force) {
         RedisParam redisParam = new RedisParam();
         redisParam.setHost(host)
                 .setPort(port)
                 .setPassword(password);
         String uniqueId = redisParam.getUniqueId();
         RedisConnItem redisParam1 = redisParamMap.get(uniqueId);
-        if (null == redisParam1
+        if (force || null == redisParam1
                 || null == redisParam1.getJedis()) {
             Jedis jedis = jedis = new Jedis(redisParam.getHost(), redisParam.getPort());
+            currentRedisParam = redisParam;
             try {
                 if (ValueWidget.isNullOrEmpty(password)) {
-
+                    jedis.connect();
                     //                jedis = new Jedis(redisParam.getHost(), redisParam.getPort());
                 } else {
                     //                jedis = new Jedis(redisParam.getHost(), redisParam.getPassword(), redisParam.getPort());
@@ -67,7 +68,7 @@ public class ConnMgmt {
             }
             redisConnItem.setJedis(jedis);
             redisParamMap.put(uniqueId, redisConnItem);
-            currentRedisParam = redisParam;
+
             return jedis;
         }
         String msg = "不用重新连接";

@@ -3,6 +3,7 @@ package com.kunlunsoft.redis.util;
 import com.kunlunsoft.redis.dto.RedisConnItem;
 import com.kunlunsoft.redis.dto.RedisParam;
 import com.string.widget.util.ValueWidget;
+import com.swing.messagebox.GUIUtil23;
 import redis.clients.jedis.Jedis;
 
 import java.lang.reflect.InvocationTargetException;
@@ -39,12 +40,18 @@ public class ConnMgmt {
         if (null == redisParam1
                 || null == redisParam1.getJedis()) {
             Jedis jedis = jedis = new Jedis(redisParam.getHost(), redisParam.getPort());
-            if (ValueWidget.isNullOrEmpty(password)) {
+            try {
+                if (ValueWidget.isNullOrEmpty(password)) {
 
-//                jedis = new Jedis(redisParam.getHost(), redisParam.getPort());
-            } else {
-//                jedis = new Jedis(redisParam.getHost(), redisParam.getPassword(), redisParam.getPort());
-                jedis.auth(redisParam.getPassword());
+                    //                jedis = new Jedis(redisParam.getHost(), redisParam.getPort());
+                } else {
+                    //                jedis = new Jedis(redisParam.getHost(), redisParam.getPassword(), redisParam.getPort());
+                    jedis.auth(redisParam.getPassword());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                GUIUtil23.errorDialog(e);
+                return null;
             }
             String msg = "连接redis...ip:" + redisParam.getHost();
             System.out.println(msg);

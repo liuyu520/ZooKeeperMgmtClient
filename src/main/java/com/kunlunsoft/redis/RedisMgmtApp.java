@@ -4,8 +4,6 @@ import com.cmd.dos.hw.util.CMDUtil;
 import com.common.util.SystemHWUtil;
 import com.io.hw.file.util.FileUtils;
 import com.io.hw.json.HWJacksonUtils;
-import com.kunlunsoft.conn.ZkConnectMgmt;
-import com.kunlunsoft.dto.ConfigInfo;
 import com.kunlunsoft.dto.RedisKeyValDto;
 import com.kunlunsoft.redis.dialog.RedisConnectDialog;
 import com.kunlunsoft.redis.dto.RedisConnItem;
@@ -83,11 +81,17 @@ public class RedisMgmtApp {
                 if (jedis == null) {
                     return;
                 }
-                if (ValueWidget.isNullOrEmpty(key)) {
-                    result = jedis.get(id);
-                } else {
-                    result = jedis.hget(id, key);
-//                    result = map.get(key);
+                try {
+                    if (ValueWidget.isNullOrEmpty(key)) {
+                        result = jedis.get(id);
+                    } else {
+                        result = jedis.hget(id, key);
+                        //                    result = map.get(key);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    GUIUtil23.errorDialog(ex);
+                    return;
                 }
 
                 System.out.println("result :" + result);
@@ -134,12 +138,18 @@ public class RedisMgmtApp {
                 return;
             }
         }
-        if (ValueWidget.isNullOrEmpty(key)) {
-            jedis.set(id, val);
+        try {
+            if (ValueWidget.isNullOrEmpty(key)) {
+                jedis.set(id, val);
 
-        } else {
-            jedis.hset(id, key, val);
+            } else {
+                jedis.hset(id, key, val);
 
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            GUIUtil23.errorDialog(e);
+            return;
         }
         //设置有效期
         if (null != second) {
@@ -215,6 +225,9 @@ public class RedisMgmtApp {
                     }
                 }
                 System.out.println("关闭连接 :" + count);
+
+                // 保存配置文件
+                redisMgmtApp.saveConfig();
             }
 
             @Override
@@ -247,6 +260,15 @@ public class RedisMgmtApp {
         if (null != configFile) {
             //处理
             System.out.println("保存文件:" + configFilePath);
+            if (this.redisKeyValDto == null) {
+                this.redisKeyValDto = new RedisKeyValDto();
+            }
+            this.redisKeyValDto.setQueryId(id2TextField1.getText2());
+            this.redisKeyValDto.setQueryKey(key2TextField2.getText2());
+            this.redisKeyValDto.setSaveId(idTextField1.getText2());
+            this.redisKeyValDto.setSaveKey(keyTextField1.getText2());
+            this.redisKeyValDto.setSaveValue(valTextArea1.getText2());
+
             String content = HWJacksonUtils.getJsonP(this.redisKeyValDto);
             if (ValueWidget.isNullOrEmpty(content)
                     || content.length() < 20) {
@@ -280,6 +302,10 @@ public class RedisMgmtApp {
         }
         id2TextField1.setText(this.redisKeyValDto.getQueryId(), true);
         key2TextField2.setText(this.redisKeyValDto.getQueryKey(), true);
+
+        idTextField1.setText(this.redisKeyValDto.getSaveId(), true);
+        keyTextField1.setText(this.redisKeyValDto.getSaveKey(), true);
+        valTextArea1.setText(this.redisKeyValDto.getSaveValue()/*, true*/);
         return true;
     }
 

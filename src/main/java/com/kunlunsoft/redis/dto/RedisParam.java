@@ -4,6 +4,7 @@ public class RedisParam {
     private String host;
     private Integer port;
     private String password;
+    private String name;
 
 
     public String getHost() {
@@ -36,5 +37,13 @@ public class RedisParam {
 
     public String getUniqueId() {
         return this.host + this.port + (null == this.password ? "" : this.password);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

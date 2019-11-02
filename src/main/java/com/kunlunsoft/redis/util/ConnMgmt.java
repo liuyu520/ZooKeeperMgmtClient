@@ -30,11 +30,12 @@ public class ConnMgmt {
         this.redisParamMap = redisParamMap;
     }
 
-    public Jedis connect(String host, String password, final int port, boolean force) {
+    public Jedis connect(String name, String host, String password, final int port, boolean force) {
         RedisParam redisParam = new RedisParam();
         redisParam.setHost(host)
                 .setPort(port)
-                .setPassword(password);
+                .setPassword(password)
+                .setName(name);
         String uniqueId = redisParam.getUniqueId();
         RedisConnItem redisParam1 = redisParamMap.get(uniqueId);
         if (force || null == redisParam1

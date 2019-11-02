@@ -24,6 +24,8 @@ public class RedisConnectDialog extends GenericDialog {
      * 强制重连
      */
     private JButton reconnectButton;
+    private AssistPopupTextField nameTextField1;
+    private JComboBox historyComboBox1;
     private ConnMgmt connMgmt;
     private RedisParam redisParam;
 
@@ -48,6 +50,7 @@ public class RedisConnectDialog extends GenericDialog {
             this.ipTextField1.setText(this.redisParam.getHost());
             this.passwordTextField1.setText(this.redisParam.getPassword());
             this.portTextField1.setText(String.valueOf(this.redisParam.getPort()));
+            this.nameTextField1.setText(this.redisParam.getName());
         }
 
         setTitle("连接redis 服务");
@@ -123,7 +126,11 @@ public class RedisConnectDialog extends GenericDialog {
             port = Integer.parseInt(portStr);
         }
         String password2 = passwordTextField1.getText2();
-        Jedis jedis = connMgmt.connect(ip, password2, port,force);
+        if (nameTextField1 == null) {
+            System.exit(0);
+            return;
+        }
+        Jedis jedis = connMgmt.connect(nameTextField1.getText(), ip, password2, port, force);
         if (null == jedis) {
             ToastMessage.toast("连接失败", 2000, Color.RED);
         } else {

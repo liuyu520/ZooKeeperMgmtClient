@@ -32,7 +32,7 @@ public class RedisConnectDialog extends GenericDialog {
     public static RedisConnectDialog show(ConnMgmt connMgmt) {
         RedisConnectDialog redisConnectDialog = new RedisConnectDialog(connMgmt);
 //        redisConnectDialog.setConnMgmt(connMgmt);
-        redisConnectDialog.setLoc(500, 130);
+        redisConnectDialog.setLoc(500, 210);
         redisConnectDialog.setVisible(true);
         return redisConnectDialog;
     }
